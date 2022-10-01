@@ -24,7 +24,7 @@ def draw_bboxes(image, detections):
             x1, y1, x2, y2 = box
             color = (255, 0, 0)
             cv2.rectangle(image, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
-            cv2.putText(image, '{:0.2f}'.format(score), (int(x1), max(0, int(y1)-10)), font, 1, color, 2)
+            cv2.putText(image, '{:0.2f}'.format(score), (int(x1), max(0, int(y1) - 10)), font, 1, color, 2)
 
         elif label == BALL_LABEL:
             x1, y1, x2, y2 = box
@@ -57,6 +57,9 @@ def run_detector(model, args):
     model.eval()
 
     sequence = cv2.VideoCapture(args.path)
+
+    if not sequence.isOpened():
+        print("Error opening the video file")
     fps = sequence.get(cv2.CAP_PROP_FPS)
     (frame_width, frame_height) = (int(sequence.get(cv2.CAP_PROP_FRAME_WIDTH)),
                                    int(sequence.get(cv2.CAP_PROP_FRAME_HEIGHT)))
@@ -121,4 +124,3 @@ if __name__ == '__main__':
                                       player_threshold=args.player_threshold)
 
     run_detector(model, args)
-
