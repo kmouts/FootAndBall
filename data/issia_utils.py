@@ -480,8 +480,9 @@ if __name__ == '__main__':
     # Read ISSIA sequence and visualize ground truth
     # ISSIA dataset can be downloaded from http://www.issia.cnr.it/wp/dataset-cnr-fig/
     # Camera ids are between 1 and 6
-    dataset_path = '/media/jacek/312b3cfe-6e0b-4a43-9b11-d163c1d5d5ad/data/issia'
-    camera_id = 1
+    # dataset_path = '/media/jacek/312b3cfe-6e0b-4a43-9b11-d163c1d5d5ad/data/issia'
+    dataset_path = '/mnt/DATA/DATASETS/ISSIA-CNR/issia'
+    camera_id = 3
     sequence = open_issia_sequence(camera_id, dataset_path)
 
     # Read annotations included in the dataset
