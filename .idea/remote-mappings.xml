@@ -3,14 +3,7 @@
   <component name="RemoteMappingsManager">
     <list>
       <list>
-        <remote-mappings server-id="python@docker://kmouts_pytorch:latest/python">
-          <settings>
-            <list>
-              <mapping local-root="$PROJECT_DIR$/../../../DATASETS" remote-root="/home/FootAndBall/DATASETS" />
-              <mapping local-root="$PROJECT_DIR$" remote-root="/home/FootAndBall" />
-            </list>
-          </settings>
-        </remote-mappings>
+        <remote-mappings server-id="python@docker://kmouts_pytorch:latest/python" />
       </list>
     </list>
   </component>

@@ -31,6 +31,8 @@ RUN pip3 install -U tqdm scipy Pillow
 RUN pip3 install torch torchvision torchaudio \
     --extra-index-url https://download.pytorch.org/whl/cu116
 
-VOLUME /home/FootAndBall /home/FootAndBall/DATASETS
+#VOLUME /home/FootAndBall /home/FootAndBall/DATASETS
+VOLUME /opt/project /DATASETS
 
-WORKDIR /home/FootAndBall
+#WORKDIR /home/FootAndBall
+WORKDIR /opt/project
