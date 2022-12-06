@@ -1,19 +1,21 @@
+#file: noinspection ComposeUnknownValues
 version: "3.9"
 services:
   app:
     build:
       context: .
     image: kmouts_pytorch:latest
+#    runtime: nvidia
     container_name: mypytorch
 #    command: nvidia-smi
-#    command: python -c "import torch; print('__CUDA Device Name:',torch.cuda.get_device_name(0))"
+    command: python -c "import torch; print('__CUDA Device Name:',torch.cuda.get_device_name(0))"
+    # ^ irrelevant, will be overwridden by pycharm, but usefull for testing
     deploy:
       resources:
         reservations:
           devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu, compute, graphics, utility, video, display]
+            - # noinspection ComposeUnknownValues,ComposeUnknownValues,ComposeUnknownValues
+              capabilities: [ gpu, compute, graphics, utility, video, display]
 
     ports:
       - "8888:8888"

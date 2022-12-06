@@ -193,7 +193,7 @@ def _create_annotations(gt, camera_id, frame_shape):
     - list of ids of players interacting with the ball
     - list of bounding boxes of players visible in this frame
 
-    :param gt: dictionary with ISSIA ground truth data returned by load_groundtruth function
+    :param gt: dictionary with ISSIA ground truth data returned by _load_groundtruth function
     :return: SequenceAnnotations object with ground truth data
     '''
 
