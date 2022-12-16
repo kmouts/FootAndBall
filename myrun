@@ -1,1 +1,1 @@
-nvidia-docker run --shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864 --rm -it -p 8888:8888 -v /mnt/DATA/DFVA/FootAndBall/FootAndBall:/home/FootAndBall -v /mnt/DATA/DATASETS:/home/FootAndBall/DATASETS  kmouts_pytorch:latest /bin/bash
+nvidia-docker run --shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864 --rm -it -p 8888:8888 -v /mnt/DATA/DFVA/FootAndBall/FootAndBall:/opt/project -v /mnt/DATA/DATASETS:/DATASETS  kmouts_pytorch:latest /bin/bash

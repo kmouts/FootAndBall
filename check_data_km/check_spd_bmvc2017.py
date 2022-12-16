@@ -12,11 +12,18 @@ import time
 
 # import torch
 
+import sys
+
+sys.path.append('/opt/project/')
+sys.path.append('/opt/project/data')
 
 from data.spd_bmvc2017_dataset import create_spd_dataset
 from misc.config import Params
 
+print(sys.path)
+
 if __name__ == '__main__':
+
     print('Check spd_bmvc2017 Dataset')
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', help='Path to the configuration file', type=str, default='../config.txt')

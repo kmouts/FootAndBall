@@ -1,6 +1,7 @@
 # FootAndBall: Integrated Player and Ball Detector
 # Jacek Komorowski, Grzegorz Kurzejamski, Grzegorz Sarwas
 # Copyright (c) 2020 Sport Algorithmics and Gaming
+import pickle
 
 import numpy as np
 import os
@@ -453,6 +454,50 @@ def visualize_detection_results(camera_id, dataset_path, gt_annotations=None, an
     cv2.destroyAllWindows()
 
 
+def visualize_issia_gt_images(camera_id, dataset_path='DATASETS/ISSIA-CNR/issia/', gt_annotations=True,
+                              annotations=None):
+    """
+    Visualize ground truth annotations (in blue)
+    :param camera_id: ID of the ISSIA video sequence
+    :param dataset_path: the path to the ISSIA video sequence
+    :param gt_annotations: SequenceAnnotations object with ground truth annotations
+    :param annotations: SequenceAnnotations object with detected annotations. If None only ground truth annotations are
+                        shown
+    :return:
+    """
+    anns = pickle.load(open(dataset_path + "issia_gt_anns.p", "rb"))
+
+    # import required module
+    from pathlib import Path
+
+    # get the path/directory
+    folder_dir = dataset_path + 'unpacked/' + str(camera_id)
+
+    # iterate over files in that directory
+    images = Path(folder_dir).glob('*.png')
+    count_frames = -1
+    for image in images:
+        count_frames += 1
+        frame = cv2.imread(str(image))
+        print(str(image))
+
+        if not gt_annotations is None:
+            frame = _annotate_frame(frame, count_frames, anns[camera_id], color=(0, 0, 255))
+
+        if not annotations is None:
+            frame = _annotate_frame(frame, count_frames, annotations, color=(255, 0, 0))
+
+        cv2.imshow('frame', frame)
+
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord('q'):
+            break
+        elif key == ord(' '):
+            cv2.waitKey()
+
+    cv2.destroyAllWindows()
+
+
 def extract_frames(dataset_path, camera_id, frames_path):
     # Extract frames from the sequence
     print('Extracting sequence: ' + str(camera_id) + ' from: ' + dataset_path + ' ...')
@@ -472,6 +517,23 @@ def extract_frames(dataset_path, camera_id, frames_path):
     sequence.release()
     cv2.destroyAllWindows()
     print('Done')
+
+
+def create_pickle_gt_issia_annotations(issia_dataset_path='/DATASETS/ISSIA-CNR/issia/'):
+    """
+    Saves a list of 6 SequenceAnnotations objects with ground truth data in a pickle
+    corresponding to the 6 ISSIA videos. The purpose is to speed up the gt reading
+    using only: pickle.load( open( "issia_gt_anns.p", "rb" ) )
+    """
+
+    print("ISSIA dataset path: " + issia_dataset_path)
+    assert os.path.isdir(issia_dataset_path)
+    gt_anns = [read_issia_ground_truth(i + 1, issia_dataset_path) for i in range(6)]
+
+    # gt_anns.persons=defaultdict(<class 'list'>, {357: [('0', 81, 21, 1897, 208),
+    #                           ('8', 75, 34, 1675, 12), ('7', 97, 48, 713, 275)],
+
+    pickle.dump(gt_anns, open(issia_dataset_path + "issia_gt_anns.p", "wb"))
 
 
 if __name__ == '__main__':
