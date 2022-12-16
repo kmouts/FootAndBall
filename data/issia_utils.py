@@ -4,20 +4,19 @@
 
 import numpy as np
 import os
-import random
 from collections import defaultdict
 from xml.dom import minidom
 
 import cv2
 
-'''
+"""
 This module contains procedures to read video sequences and ground truth data from CNR ISSIA dataset.
 It contains 6 annotated video sequences from a football game.
 Ground truth data contains ball, referee and players  position.  
 For more information see: http://www.issia.cnr.it/wp/dataset-cnr-fig/
-'''
+"""
 
-'''
+"""
 Part of the ISSIA ground truth data. From *.xgtf file CONFIG section
 
 <descriptor name="BALL" type="OBJECT">
@@ -27,29 +26,30 @@ Part of the ISSIA ground truth data. From *.xgtf file CONFIG section
                     <data:bvalue value="false"/>
                 </default>
             </attribute>
-	    <attribute dynamic="true" name="PlayerInteractingID" type="http://lamp.cfar.umd.edu/viperdata#dvalue">
-		<default>
-			<data:dvalue value="-1"/>
-		</default>
-	    </attribute>
+        <attribute dynamic="true" name="PlayerInteractingID" type="http://lamp.cfar.umd.edu/viperdata#dvalue">
+        <default>
+            <data:dvalue value="-1"/>
+        </default>
+        </attribute>
         </descriptor>
 
-'''
+"""
+
 
 # AUXILIARY FUNCTIONS
 
 
 def _dist(x1, x2):
     # Euclidean distance between two points
-    return np.sqrt((float(x1[0])-float(x2[0]))**2 + (float(x1[1])-float(x2[1]))**2)
+    return np.sqrt((float(x1[0]) - float(x2[0])) ** 2 + (float(x1[1]) - float(x2[1])) ** 2)
 
 
 def _parse_framespan(framespan):
-    '''
+    """
     Auxiliary function to parse frame span value
     :param framespan: string in "start_frame:end_frame" format, e.g. "1182:1185"
     :return: a tuple of int (start_frame, end_frame)
-    '''
+    """
     # Parse framespan, format is: framespan="1182:1185"
     pos = framespan.find(':')
     if pos < 1:
@@ -61,7 +61,7 @@ def _parse_framespan(framespan):
 
 
 def _load_groundtruth(filepath):
-    '''
+    """
     Load ground truth data from XML file (ISSIA dataset)
     :param filepath: Path to the ground truth XML file
     :return: Dictionary with ISSIA ground truth data. The dictionary has the following elements:
@@ -69,7 +69,7 @@ def _load_groundtruth(filepath):
              gt['BallShot']             - ball shot events
              gt['PlayerInteractingID']  - ID of the player interacting with a ball
              gt['Person']               - players bounding boxes
-    '''
+    """
 
     assert os.path.isfile(filepath)
     xmldoc = minidom.parse(filepath)
@@ -82,7 +82,7 @@ def _load_groundtruth(filepath):
     num_frames = None
 
     for e in itemlist[0].getElementsByTagName('attribute'):
-        if e.attributes['name'].value =='NUMFRAMES':
+        if e.attributes['name'].value == 'NUMFRAMES':
             values = e.getElementsByTagName('data:dvalue')
             # There should be only one data:dvalue node
             assert len(values) == 1
@@ -97,13 +97,13 @@ def _load_groundtruth(filepath):
     # Processs information from data section. Extract ball positions
 
     # Dictionary to hold ground truth values
-    gt ={}
+    gt = {}
     # List of ball position on each frame from the sequence
     gt['BallPos'] = []
     # Indicates if the ball was shot on each frame from the sequence
     gt['BallShot'] = []
     # ID of player interacting with the ball on each frame from the sequence
-    gt['PlayerInteractingID']= []
+    gt['PlayerInteractingID'] = []
     # Dictionary storing list of bounding boxes of each person for each frame from the sequence
     gt['Person'] = defaultdict(list)
 
@@ -183,7 +183,7 @@ def _load_groundtruth(filepath):
 
 
 def _create_annotations(gt, camera_id, frame_shape):
-    '''
+    """
     Convert ground truth from ISSIA dataset to SequenceAnnotations object
     Camera id and frame shape is needed to rectify the ball position (as for some strange reason actual ball position
     in ISSIA dataset is shifted/reversed for some sequences)
@@ -195,7 +195,7 @@ def _create_annotations(gt, camera_id, frame_shape):
 
     :param gt: dictionary with ISSIA ground truth data returned by _load_groundtruth function
     :return: SequenceAnnotations object with ground truth data
-    '''
+    """
 
     annotations = SequenceAnnotations()
 
@@ -205,39 +205,39 @@ def _create_annotations(gt, camera_id, frame_shape):
     delta = -8
 
     for (start_frame, end_frame, x, y) in gt['BallPos']:
-        for i in range(start_frame, end_frame+1):
+        for i in range(start_frame, end_frame + 1):
             if camera_id == 2 or camera_id == 6:
                 # For some reason ball coordinates for camera 2 and 6 have reversed in x-coordinate
                 x = frame_shape[1] - x
-            annotations.ball_pos[i+delta].append((x, y))
+            annotations.ball_pos[i + delta].append((x, y))
 
     for (start_frame, end_frame, value) in gt['BallShot']:
         if value:
-            for i in range(start_frame, end_frame+1):
-                annotations.ball_shot[i+delta] = True
+            for i in range(start_frame, end_frame + 1):
+                annotations.ball_shot[i + delta] = True
 
     for (start_frame, end_frame, value) in gt['PlayerInteractingID']:
         if value > -1:
-            for i in range(start_frame, end_frame+1):
-                annotations.interacting_player[i+delta].append(value)
+            for i in range(start_frame, end_frame + 1):
+                annotations.interacting_player[i + delta].append(value)
 
     for player in gt['Person']:
         for (start_frame, end_frame, height, width, x, y) in gt['Person'][player]:
             assert start_frame <= end_frame
-            for i in range(start_frame, end_frame+1):
-                annotations.persons[i+delta].append((player, height, width, x, y))
+            for i in range(start_frame, end_frame + 1):
+                annotations.persons[i + delta].append((player, height, width, x, y))
 
     return annotations
 
 
 def _ball_detection_stats(ball_pos, gt_ball_pos, tolerance):
-    '''
+    """
     Compute ball detection stats for the single frame
     :param ball_pos: A list of detected ball positions. Multiple balls are possible.
-    :param gt_ball_poss: A list of ground truth ball positions. Multiple balls are possible.
+    :param gt_ball_pos: A list of ground truth ball positions. Multiple balls are possible.
     :param tolerance: tolerance for ball centre tolerance in pixels
     :return: A tuple (precision, recall, number of correctly_classified frames)
-    '''
+    """
 
     # True positives, false positives and false negatives
     tp = 0
@@ -284,11 +284,11 @@ def _ball_detection_stats(ball_pos, gt_ball_pos, tolerance):
     precision = None
     recall = None
 
-    if tp+fp > 0:
-        precision = tp/(tp+fp)
+    if tp + fp > 0:
+        precision = tp / (tp + fp)
 
-    if tp+fn > 0:
-        recall = tp/(tp+fn)
+    if tp + fn > 0:
+        recall = tp / (tp + fn)
 
     # Frame was correctly classified if there were no false positives and false negatives
     correctly_classified = (fp == 0 and fn == 0)
@@ -297,30 +297,30 @@ def _ball_detection_stats(ball_pos, gt_ball_pos, tolerance):
 
 
 def _annotate_frame(frame, frame_id, annotations, color=(0, 0, 255)):
-    '''
+    """
     Visualize annotations. Draw ball position and players' bounding boxes.
     :param frame: input video frame
     :param frame_id: id of the video frame
     :param annotations: SequenceAnnotations object
     :param color: color
     :return: annotated video frame (with ball position and players' bounding boxes)
-    '''
+    """
     # Ball position
-    for (x,y) in annotations.ball_pos[frame_id]:
+    for (x, y) in annotations.ball_pos[frame_id]:
         if x > -1 and y > -1:
             cv2.circle(frame, (x, y), 10, color, -1)
 
-    #Ball shot
-    #if annotations.ball_shot[frame_id]:
+    # Ball shot
+    # if annotations.ball_shot[frame_id]:
     #   print('Ball shot...')
 
     # Interacting player
-    #for value in annotations.interacting_player[frame_id]:
+    # for value in annotations.interacting_player[frame_id]:
     #    print('Interacting player: ' + str(value))
 
     # Person bounding boxes
     for (player, height, width, x, y) in annotations.persons[frame_id]:
-        cv2.rectangle(frame, (x, y), (x+width, y+height), color)
+        cv2.rectangle(frame, (x, y), (x + width, y + height), color)
 
     return frame
 
@@ -329,9 +329,10 @@ def _annotate_frame(frame, frame_id, annotations, color=(0, 0, 255)):
 
 
 class SequenceAnnotations:
-    '''
+    """
     Class for storing annotations for the video sequence
-    '''
+    """
+
     def __init__(self):
         # ball_pos contains list of ball positions (x,y) on each frame; multiple balls per frame are possible
         self.ball_pos = defaultdict(list)
@@ -344,11 +345,11 @@ class SequenceAnnotations:
 
 
 def open_issia_sequence(camera_id, dataset_path):
-    '''
+    """
     Open the video sequence from the camera: camera_id
     :param camera_id: number of the ISSIA sequence (between 1 and 6)
     :return: VideoStream
-    '''
+    """
     assert (camera_id >= 1) and (camera_id <= 6)
 
     dataset_path = os.path.expanduser(dataset_path)
@@ -361,11 +362,11 @@ def open_issia_sequence(camera_id, dataset_path):
 
 
 def read_issia_ground_truth(camera_id, dataset_path):
-    '''
+    """
     Read ground truth from the ISSIA dataset correpsoinding to camera: camera_id
     :param camera_id: number of teh sequence (between 1 and 6)
     :return: SequenceAnnotations object
-    '''
+    """
     assert (camera_id >= 1) and (camera_id <= 6)
 
     dataset_path = os.path.expanduser(dataset_path)
@@ -387,13 +388,13 @@ def read_issia_ground_truth(camera_id, dataset_path):
 
 
 def evaluate_ball_detection_results(annotations, gt_annotations, tolerance):
-    '''
+    """
     Evaluate ball detection performance
     :param annotations: SequenceAnnotations object with ball detection results to be evaluated
     :param gt_annotations: SequenceAnnotations object with ground truth annotations
     :param tolerance: tolerance in pixels for ball centre detection
     :return: A tuple (precision, recall, percent of correctly_classified frames)
-    '''
+    """
 
     frame_stats = []
 
@@ -405,9 +406,9 @@ def evaluate_ball_detection_results(annotations, gt_annotations, tolerance):
         gt_ball_pos = gt_annotations.ball_pos[i]
         frame_stats.append(_ball_detection_stats(ball_pos, gt_ball_pos, tolerance))
 
-    percent_correctly_classified_frames = sum([c for (_,_,c) in frame_stats])/len(frame_stats)
+    percent_correctly_classified_frames = sum([c for (_, _, c) in frame_stats]) / len(frame_stats)
     temp = [p for (p, _, _) in frame_stats if p is not None]
-    avg_precision = sum(temp)/len(temp)
+    avg_precision = sum(temp) / len(temp)
 
     temp = [r for (_, r, _) in frame_stats if r is not None]
     avg_recall = sum(temp) / len(temp)
@@ -416,14 +417,14 @@ def evaluate_ball_detection_results(annotations, gt_annotations, tolerance):
 
 
 def visualize_detection_results(camera_id, dataset_path, gt_annotations=None, annotations=None):
-    '''
+    """
     Visualize ground truth annotations (in blue) and detected annotations (in red)
     :param camera_id: ID of the ISSIA video sequence
     :param gt_annotations: SequenceAnnotations object with ground truth annotations
     :param annotations: SequenceAnnotations object with detected annotations. If None only ground truth annotations are
                         shown
     :return:
-    '''
+    """
     sequence = open_issia_sequence(camera_id, dataset_path)
     count_frames = -1
     while (sequence.isOpened()):
