@@ -2,6 +2,7 @@
 # Jacek Komorowski, Grzegorz Kurzejamski, Grzegorz Sarwas
 # Copyright (c) 2020 Sport Algorithmics and Gaming
 import pickle
+import re
 
 import numpy as np
 import os
@@ -474,26 +475,29 @@ def visualize_issia_gt_images(camera_id, dataset_path='DATASETS/ISSIA-CNR/issia/
     folder_dir = dataset_path + 'unpacked/' + str(camera_id)
 
     # iterate over files in that directory
-    images = Path(folder_dir).glob('*.png')
+    # images = sorted(Path(folder_dir).glob('*.png'))
+    dirFiles = os.listdir(folder_dir)
+    filelist = sorted(dirFiles, key=lambda x: int(os.path.splitext(x)[0]))
+    # images = dirFiles.sort(key=lambda f: int(re.sub(r"(\D)", '', f)))
     count_frames = -1
-    for image in images:
+    for image in filelist:
         count_frames += 1
-        frame = cv2.imread(str(image))
+        # frame = cv2.imread(str(image))
         print(str(image))
 
-        if not gt_annotations is None:
-            frame = _annotate_frame(frame, count_frames, anns[camera_id], color=(0, 0, 255))
-
-        if not annotations is None:
-            frame = _annotate_frame(frame, count_frames, annotations, color=(255, 0, 0))
-
-        cv2.imshow('frame', frame)
-
-        key = cv2.waitKey(1) & 0xFF
-        if key == ord('q'):
-            break
-        elif key == ord(' '):
-            cv2.waitKey()
+        # if not gt_annotations is None:
+        #     frame = _annotate_frame(frame, count_frames, anns[camera_id], color=(0, 0, 255))
+        #
+        # if not annotations is None:
+        #     frame = _annotate_frame(frame, count_frames, annotations, color=(255, 0, 0))
+        #
+        # cv2.imshow('frame', frame)
+        #
+        # key = cv2.waitKey(1) & 0xFF
+        # if key == ord('q'):
+        #     break
+        # elif key == ord(' '):
+        #     cv2.waitKey()
 
     cv2.destroyAllWindows()
 
