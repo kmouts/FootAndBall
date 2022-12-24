@@ -1,7 +1,7 @@
 # FootAndBall: Integrated Player and Ball Detector
 # Jacek Komorowski, Grzegorz Kurzejamski, Grzegorz Sarwas
 # Copyright (c) 2020 Sport Algorithmics and Gaming
-
+import torch
 from torchvision import transforms
 from PIL import Image
 import numpy as np
@@ -24,12 +24,12 @@ NORMALIZATION_STD = [0.229, 0.224, 0.225]
 
 # Tensor to numpy transform
 
-denormalize_trans = transforms.Compose([transforms.Normalize(mean=[0., 0., 0.], std=[1.0 / e for e in NORMALIZATION_STD]),
-                                        transforms.Normalize(mean=[-e for e in NORMALIZATION_MEAN], std=[1., 1., 1.])])
+denormalize_trans = transforms.Compose(
+    [transforms.Normalize(mean=[0., 0., 0.], std=[1.0 / e for e in NORMALIZATION_STD]),
+     transforms.Normalize(mean=[-e for e in NORMALIZATION_MEAN], std=[1., 1., 1.])])
 
 normalize_trans = transforms.Compose([transforms.ToTensor(),
                                       transforms.Normalize(NORMALIZATION_MEAN, NORMALIZATION_STD)])
-
 
 def tensor2image(image, downscale=None):
     # Convert image encoded as normalized tensor back to numpy (opencv format)
@@ -52,7 +52,7 @@ def heatmap2image(tensor, channel=1):
     if tensor.dim() == 3:
         tensor = tensor[:, :, channel]
 
-    image = tensor.cpu().numpy().astype(np.uint8)*255
+    image = tensor.cpu().numpy().astype(np.uint8) * 255
     heatmap = cv2.applyColorMap(image, cv2.COLORMAP_JET)
     return heatmap
 
@@ -80,8 +80,8 @@ def apply_transform_and_clip(boxes, labels, M, shape):
     assert len(boxes) == len(labels)
 
     ones = np.ones((len(boxes), 1))
-    ext_pts1 = np.append(boxes[:, :2], ones, 1).transpose()     # Upper right corner
-    ext_pts2 = np.append(boxes[:, 2:4], ones, 1).transpose()    # Lower left corner
+    ext_pts1 = np.append(boxes[:, :2], ones, 1).transpose()  # Upper right corner
+    ext_pts2 = np.append(boxes[:, 2:4], ones, 1).transpose()  # Lower left corner
 
     transformed_pts1 = np.dot(M[:2], ext_pts1).transpose()
     transformed_pts2 = np.dot(M[:2], ext_pts2).transpose()
@@ -98,12 +98,13 @@ def apply_transform_and_clip(boxes, labels, M, shape):
 
 def clip(boxes, labels, shape):
     """
-
+    If a box is even partly outside the shape, it is being removed (!)
     :param boxes: list of (x1, y1, x2, y2) coordinates
     :param shape: (width, height) tuple
     :return:
     """
-    box_contained = lambda e: 0 <= e[0] < shape[0] and 0 <= e[1] < shape[1] and 0 <= e[2] < shape[0] and 0 <= e[3] < shape[1]
+    box_contained = lambda e: 0 <= e[0] < shape[0] and 0 <= e[1] < shape[1] and 0 <= e[2] < shape[0] and 0 <= e[3] < \
+                              shape[1]
     mask = [box_contained(box) for box in boxes]
     return boxes[mask], labels[mask]
 
@@ -171,7 +172,7 @@ class RandomAffine:
                 self.shear = (-shear, shear)
             else:
                 assert isinstance(shear, (tuple, list)) and \
-                    (len(shear) == 2 or len(shear) == 4), \
+                       (len(shear) == 2 or len(shear) == 4), \
                     "shear should be a list or tuple and it must be of length 2 or 4."
                 # X-Axis shear with [min, max]
                 if len(shear) == 2:
@@ -224,14 +225,15 @@ class RandomAffine:
         center = (width * 0.5 + 0.5, height * 0.5 + 0.5)
         coeffs = F._get_inverse_affine_matrix(center, angle, translate, scale, shear)
         inverse_affine_matrix = np.eye(3)
-        inverse_affine_matrix[:2] = np.array(coeffs).reshape(2, 3)     # Fill-in first 2 rows of an affine transformation matrix
+        inverse_affine_matrix[:2] = np.array(coeffs).reshape(2,
+                                                             3)  # Fill-in first 2 rows of an affine transformation matrix
 
         if np.random.rand() < self.p_hflip:
             # Post-apply horizontal flip
             # Pre-multiply by [ [-1, 0, width], [0, 1, 0], [0, 0, 1] ] matrix
             flip_matrix = np.eye(3)
             flip_matrix[0, 0] = -1
-            flip_matrix[0, 2] = width-1
+            flip_matrix[0, 2] = width - 1
             # For inverse affine matrix, pre-multiply by a inverse flip matrix (which is the same as a flip matrix)
             inverse_affine_matrix = flip_matrix @ inverse_affine_matrix
 

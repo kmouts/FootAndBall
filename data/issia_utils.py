@@ -472,32 +472,36 @@ def visualize_issia_gt_images(camera_id, dataset_path='DATASETS/ISSIA-CNR/issia/
     from pathlib import Path
 
     # get the path/directory
-    folder_dir = dataset_path + 'unpacked/' + str(camera_id)
+    folder_dir = dataset_path + 'unpacked/' + str(camera_id) + '/'
 
     # iterate over files in that directory
-    # images = sorted(Path(folder_dir).glob('*.png'))
+
     dirFiles = os.listdir(folder_dir)
     filelist = sorted(dirFiles, key=lambda x: int(os.path.splitext(x)[0]))
-    # images = dirFiles.sort(key=lambda f: int(re.sub(r"(\D)", '', f)))
+
     count_frames = -1
     for image in filelist:
         count_frames += 1
-        # frame = cv2.imread(str(image))
-        print(str(image))
+        frame = cv2.imread(folder_dir + str(image))
+        # print(str(image))
 
-        # if not gt_annotations is None:
-        #     frame = _annotate_frame(frame, count_frames, anns[camera_id], color=(0, 0, 255))
-        #
-        # if not annotations is None:
-        #     frame = _annotate_frame(frame, count_frames, annotations, color=(255, 0, 0))
-        #
-        # cv2.imshow('frame', frame)
-        #
-        # key = cv2.waitKey(1) & 0xFF
-        # if key == ord('q'):
-        #     break
-        # elif key == ord(' '):
-        #     cv2.waitKey()
+        has_annotation = (gt_annotations is not None) and (anns[camera_id].ball_pos[count_frames] or
+                                                           anns[camera_id].persons[count_frames])
+
+        if has_annotation:
+            frame = _annotate_frame(frame, count_frames, anns[camera_id], color=(0, 0, 255))
+
+            if annotations is not None:
+                frame = _annotate_frame(frame, count_frames, annotations, color=(255, 0, 0))
+
+            cv2.imshow('frame', cv2.resize(frame, (0, 0), fx=0.5, fy=0.5))
+            cv2.imwrite(dataset_path + 'test/' + str(camera_id) + '/' + str(image), frame)
+
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord('q'):
+            break
+        elif key == ord(' '):
+            cv2.waitKey()
 
     cv2.destroyAllWindows()
 
