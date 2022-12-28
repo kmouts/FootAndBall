@@ -1,35 +1,24 @@
-#
-# Train FootAndBall detector on ISSIA-CNR Soccer and SoccerPlayerDetection dataset
-#
-
-
-import argparse
 import pickle
+import sys
 
 import cv2
 import numpy as np
-import os
-import time
-import sys
 
-from data.augmentation import tensor2image, BALL_LABEL, PLAYER_LABEL, denormalize_trans
+from data.issia_utils import _annotate_frame
 from data.issia_dataset import create_issia_dataset
-# import torch
-from data.issia_utils import visualize_issia_gt_images, _annotate_frame
-
-from data.spd_bmvc2017_dataset import create_spd_dataset
-from misc.config import Params
+from data.augmentation import tensor2image, PLAYER_LABEL
 
 if __name__ == '__main__':
     print('Check issia Dataset')
-    sys.path.append('/opt/project/data')
+    sys.path.append('data')
     print(sys.path)
 
-    dataset_path = '/DATASETS/ISSIA-CNR/issia/'
+    dataset_path = '/mnt/DATA/DATASETS/ISSIA-CNR/issia/'
     camera_id = 1
     image_id = 1272
-    anns = pickle.load(open(dataset_path + "issia_gt_anns.p", "rb"))
+
     folder_dir = dataset_path + 'unpacked/' + str(camera_id) + '/'
+    anns = pickle.load(open(dataset_path + "issia_gt_anns.p", "rb"))
     frame = cv2.imread(folder_dir + str(image_id) + '.png')
     frame = _annotate_frame(frame, image_id, anns[camera_id - 1], color=(0, 0, 255))
     cv2.imshow('frame', cv2.resize(frame, (0, 0), fx=0.5, fy=0.5))
@@ -59,7 +48,4 @@ if __name__ == '__main__':
     cv2.destroyAllWindows()
 
     player_boxes = [b for ind, b in enumerate(int_boxes) if labels.tolist()[ind] == PLAYER_LABEL]
-    # assert (len(anns2) == len(player_boxes))
-    # for ind,b in player_boxes:
-    #     anbox = anns[ind]
-    #     anbox[3] = b[0]
+
