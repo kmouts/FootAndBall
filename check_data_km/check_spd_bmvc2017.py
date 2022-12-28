@@ -14,13 +14,8 @@ import time
 
 import sys
 
-sys.path.append('/opt/project/')
-sys.path.append('/opt/project/data')
-
 from data.spd_bmvc2017_dataset import create_spd_dataset
 from misc.config import Params
-
-print(sys.path)
 
 if __name__ == '__main__':
 
@@ -54,9 +49,3 @@ if __name__ == '__main__':
 
     cv2.destroyAllWindows()
 
-'''
-NOTES:
-In camera 5 some of the player bboxes are moved by a few pixels from the true position.
-When evaluating mean precision use smaller IoU ratio, otherwise detection results are poor.
-Alternatively add some margin to ISSIA ground truth bboxes.
-'''

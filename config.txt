@@ -1,10 +1,10 @@
 [DEFAULT]
 
-issia_path=/DATASETS/ISSIA-CNR/issia
+issia_path=/mnt/DATA/DATASETS/ISSIA-CNR/issia/
 issia_train_cameras=1,2,3,4
 issia_val_cameras=5,6
 
-spd_path=/DATASETS/SoccerPlayerDetection/SoccerPlayerDetection_bmvc17_v1/SoccerPlayerDetection_bmvc17_v1
+spd_path=/mnt/DATA/DATASETS/SoccerPlayerDetection/SoccerPlayerDetection_bmvc17_v1/SoccerPlayerDetection_bmvc17_v1
 spd_set=1,2
 
 epochs=20

@@ -3,6 +3,7 @@
   <component name="NewModuleRootManager">
     <content url="file://$USER_HOME$/anaconda3/envs/FootAndBall/lib/python3.8/site-packages/cv2" />
     <content url="file://$USER_HOME$/anaconda3/envs/FootAndBall/lib/python3.8/site-packages/opencv_python.libs" />
+    <content url="file://$USER_HOME$/anaconda3/envs/FootAndBall/lib/python3.8/site-packages/scipy" />
     <content url="file://$MODULE_DIR$" />
     <orderEntry type="jdk" jdkName="FootAndBall" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
