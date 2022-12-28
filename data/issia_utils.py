@@ -418,7 +418,7 @@ def evaluate_ball_detection_results(annotations, gt_annotations, tolerance):
     return avg_precision, avg_recall, percent_correctly_classified_frames
 
 
-def visualize_detection_results(camera_id, dataset_path, gt_annotations=None, annotations=None):
+def visualize_detection_results(camera_id, dataset_path, gt_annotations=None, annotations=None, resize=False):
     """
     Visualize ground truth annotations (in blue) and detected annotations (in red)
     :param camera_id: ID of the ISSIA video sequence
@@ -443,7 +443,10 @@ def visualize_detection_results(camera_id, dataset_path, gt_annotations=None, an
         if not annotations is None:
             frame = _annotate_frame(frame, count_frames, annotations, color=(255, 0, 0))
 
-        cv2.imshow('frame', frame)
+        if resize:
+            cv2.imshow('frame', cv2.resize(frame, (0, 0), fx=0.5, fy=0.5))
+        else:
+            cv2.imshow('frame', frame)
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
@@ -527,7 +530,7 @@ def extract_frames(dataset_path, camera_id, frames_path):
     print('Done')
 
 
-def create_pickle_gt_issia_annotations(issia_dataset_path='/DATASETS/ISSIA-CNR/issia/'):
+def create_pickle_gt_issia_annotations(issia_dataset_path='/mnt/DATA/DATASETS/ISSIA-CNR/issia/'):
     """
     Saves a list of 6 SequenceAnnotations objects with ground truth data in a pickle
     corresponding to the 6 ISSIA videos. The purpose is to speed up the gt reading
@@ -544,23 +547,61 @@ def create_pickle_gt_issia_annotations(issia_dataset_path='/DATASETS/ISSIA-CNR/i
     pickle.dump(gt_anns, open(issia_dataset_path + "issia_gt_anns.p", "wb"))
 
 
+def create_dataset_image_list(issia_dataset_path='/mnt/DATA/DATASETS/ISSIA-CNR/issia/', cameras=(1, 2, 3, 4, 5, 6)):
+    """
+    Saves a list of tuples: (image_path,camera_id,number) in a pickle
+    using only: pickle.load( open( "clean_issia_image_list.p", "rb" ) )
+    """
+    image_list = []
+
+    # Read ground truth data for the sequence
+    gt_anns = pickle.load(open(issia_dataset_path + "issia_gt_anns.p", "rb"))
+    for cam_id in cameras:
+        frames_path = os.path.join(issia_dataset_path, 'unpacked', str(cam_id))
+
+        annotated_frames = set(gt_anns[cam_id - 1].ball_pos) and set(
+            gt_anns[cam_id - 1].persons)
+
+        min_annotated_frame = min(annotated_frames)
+        # Skip the first 50 annotated frames - as they may contain wrong annotations
+        annotated_frames = [e for e in list(annotated_frames) if e > min_annotated_frame + 50]
+
+        for e in annotated_frames:
+            # Verify if the image file exists
+            # Sometimes ground truth contains more annotations than images in the sequence
+            file_path = os.path.join(frames_path, str(e) + '.png')
+            if os.path.exists(file_path):
+                image_list.append((file_path, cam_id, e))
+    pickle.dump(image_list, open(issia_dataset_path + "clean_issia_image_list", "wb"))
+
+    # Get indexes of images with ball ground truth
+    ball_images_ndx = []
+    for ndx, (_, cam_id, image_ndx) in enumerate(image_list):
+        ball_pos = gt_anns[cam_id-1].ball_pos[image_ndx]
+        if len(ball_pos) > 0:
+            ball_images_ndx.append(ndx)
+    pickle.dump(ball_images_ndx, open(issia_dataset_path + "ball_images_ndx_in_clean_issia_image_list", "wb"))
+
+
 if __name__ == '__main__':
     # Example to demonstrate usage of module procedures
     print("OpenCV version: " + str(cv2.__version__))
+
+    # create_dataset_image_list()
 
     # Read ISSIA sequence and visualize ground truth
     # ISSIA dataset can be downloaded from http://www.issia.cnr.it/wp/dataset-cnr-fig/
     # Camera ids are between 1 and 6
     # dataset_path = '/media/jacek/312b3cfe-6e0b-4a43-9b11-d163c1d5d5ad/data/issia'
     dataset_path = '/mnt/DATA/DATASETS/ISSIA-CNR/issia'
-    camera_id = 3
+    camera_id = 1
     sequence = open_issia_sequence(camera_id, dataset_path)
 
     # Read annotations included in the dataset
     gt_annotations = read_issia_ground_truth(camera_id, dataset_path)
 
     # Show annotated video sequence
-    visualize_detection_results(camera_id, dataset_path, gt_annotations=gt_annotations)
+    visualize_detection_results(camera_id, dataset_path, gt_annotations=gt_annotations, resize=True)
 
     # Ball detection in pixels performance
     # This should return all ones as we evaluate the performance on ground truth data
