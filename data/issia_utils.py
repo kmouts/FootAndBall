@@ -572,7 +572,7 @@ def create_dataset_image_list(issia_dataset_path='/mnt/DATA/DATASETS/ISSIA-CNR/i
             file_path = os.path.join(frames_path, str(e) + '.png')
             if os.path.exists(file_path):
                 image_list.append((file_path, cam_id, e))
-    pickle.dump(image_list, open(issia_dataset_path + "clean_issia_image_list", "wb"))
+    pickle.dump(image_list, open(issia_dataset_path + "clean_issia_image_list.p", "wb"))
 
     # Get indexes of images with ball ground truth
     ball_images_ndx = []
@@ -580,7 +580,7 @@ def create_dataset_image_list(issia_dataset_path='/mnt/DATA/DATASETS/ISSIA-CNR/i
         ball_pos = gt_anns[cam_id-1].ball_pos[image_ndx]
         if len(ball_pos) > 0:
             ball_images_ndx.append(ndx)
-    pickle.dump(ball_images_ndx, open(issia_dataset_path + "ball_images_ndx_in_clean_issia_image_list", "wb"))
+    pickle.dump(ball_images_ndx, open(issia_dataset_path + "ball_images_ndx_in_clean_issia_image_list.p", "wb"))
 
 
 if __name__ == '__main__':
