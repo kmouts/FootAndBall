@@ -1,0 +1,5 @@
+Finish with:153.0245704650879 second, num_workers=2
+Finish with:167.0866494178772 second, num_workers=4
+Finish with:179.13643264770508 second, num_workers=6
+Finish with:204.10686206817627 second, num_workers=8
+Finish with:225.45698261260986 second, num_workers=10
