@@ -9,6 +9,7 @@ import torch
 import tqdm as tqdm
 from torch.utils.data import DataLoader
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
+import numpy as np
 
 from data.data_reader import my_collate
 from data.issia_dataset_km import P_IssiaDataset, create_issia_dataset
@@ -25,7 +26,7 @@ my_device = 'cuda'
 issia_video_camera_number = 5
 issia_dataset_path = '/mnt/DATA/DATASETS/ISSIA-CNR/issia/'
 
-cameras = [5]
+cameras = [6]
 only_ball_frames = False
 
 val_issia_dataset = create_issia_dataset(issia_dataset_path, cameras, mode='val', only_ball_frames=only_ball_frames)
@@ -57,9 +58,10 @@ model.eval()
 batch_stats = {'loss': [], 'loss_ball_c': [], 'loss_player_c': [], 'loss_player_l': []}
 
 # https://torchmetrics.readthedocs.io/en/stable/detection/mean_average_precision.html
-metric = MeanAveragePrecision(iou_type="bbox", class_metrics=False, compute_on_cpu=True).to(torch.device("cpu"))
-# https://torchmetrics.readthedocs.io/en/stable/classification/average_precision.html
-metric = MulticlassAveragePrecision
+metric = MeanAveragePrecision(iou_type="bbox", class_metrics=True, compute_on_cpu=True,
+                              iou_thresholds=[0.5], rec_thresholds=list(np.linspace(0, 1, 11))
+                              ).to(torch.device("cpu"))
+
 count_batches = 0
 # Iterate over data.
 for ndx, (images, boxes, labels) in enumerate(dataloaders[phase]):
@@ -83,7 +85,6 @@ for ndx, (images, boxes, labels) in enumerate(dataloaders[phase]):
 
     # if count_batches == 4:
     #     break
-
 
 # Compute the results
 result = metric.compute()
