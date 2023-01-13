@@ -36,12 +36,16 @@ class P_IssiaDataset(torch.utils.data.Dataset):
         self.only_ball_frames = only_ball_frames
         self.image_extension = '.png'
         # Dictionary with ground truth annotations per camera (-1)
-        if only_ball_frames:
-            self.gt_annotations = pickle.load(open(dataset_path + "ball_images_ndx_in_clean_issia_image_list.p", "rb"))
-        else:
-            self.gt_annotations = pickle.load(open(dataset_path + "issia_gt_anns.p", "rb"))
+
+        self.gt_annotations = pickle.load(open(dataset_path + "issia_gt_anns.p", "rb"))
         # list of images as tuples (image_path, camera_id, image index)
         self.image_list = pickle.load(open(dataset_path + "clean_issia_image_list.p", "rb"))
+
+        # Filter frames from the sequence if needed
+        if only_ball_frames:
+            bal_ndx = pickle.load(open(dataset_path + "ball_images_ndx_in_clean_issia_image_list.p", "rb"))
+            new_image_list = [self.image_list[i] for i in bal_ndx]
+            self.image_list = new_image_list
 
         for camera_id in cameras:
             # Filter frames from the sequence if needed
@@ -49,6 +53,7 @@ class P_IssiaDataset(torch.utils.data.Dataset):
 
         self.n_images = len(self.image_list)
         self.ball_images_ndx = set(self.get_elems_with_ball())
+
         self.no_ball_images_ndx = set([ndx for ndx in range(self.n_images) if ndx not in self.ball_images_ndx])
         print('ISSIA CNR: {} frames with the ball'.format(len(self.ball_images_ndx)))
         print('ISSIA CNR: {} frames without the ball'.format(len(self.no_ball_images_ndx)))

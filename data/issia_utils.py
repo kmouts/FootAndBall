@@ -577,10 +577,23 @@ def create_dataset_image_list(issia_dataset_path='/mnt/DATA/DATASETS/ISSIA-CNR/i
     # Get indexes of images with ball ground truth
     ball_images_ndx = []
     for ndx, (_, cam_id, image_ndx) in enumerate(image_list):
-        ball_pos = gt_anns[cam_id-1].ball_pos[image_ndx]
+        ball_pos = gt_anns[cam_id - 1].ball_pos[image_ndx]
         if len(ball_pos) > 0:
             ball_images_ndx.append(ndx)
     pickle.dump(ball_images_ndx, open(issia_dataset_path + "ball_images_ndx_in_clean_issia_image_list.p", "wb"))
+
+
+def ball_boxes_to_centers_list(frame, list_acc):
+    my_labels = frame['labels'].numpy()
+    my_boxes = frame['boxes'].numpy()
+    box_anns = []
+    for ind, i in enumerate(my_labels):
+        if i == 1:  # it is ball box
+            x1, y1, x2, y2 = my_boxes[ind]
+            x = int((x1 + x2) / 2)
+            y = int((y1 + y2) / 2)
+            box_anns.append((x, y))
+    list_acc.append(box_anns)
 
 
 if __name__ == '__main__':
