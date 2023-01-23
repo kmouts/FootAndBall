@@ -12,12 +12,13 @@ from torch.utils.data import DataLoader
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
 import numpy as np
 
+from data.SNv3_dataloader import create_snv3_dataset
 from data.data_reader import my_collate
 from data.issia_dataset_km import P_IssiaDataset, create_issia_dataset
 from data.issia_utils import evaluate_ball_detection_results, _ball_detection_stats, ball_boxes_to_centers_list
 from network import footandball
 
-sys.path.append('data')
+sys.path.append('..')
 print(torch.cuda.get_device_name(0))
 torch.cuda.init()
 model_name = 'fb1'
@@ -25,16 +26,15 @@ model_weights_path = 'models/model_20201019_1416_final.pth'
 ball_confidence_threshold = 0.7
 player_confidence_threshold = 0.7
 my_device = 'cuda'
-issia_dataset_path = '/mnt/DATA/DATASETS/ISSIA-CNR/issia/'
+snv3_dataset_path = '/mnt/DATA/DATASETS/SOCCERNETv3/SNV3/SNV3_PIP_data_final'
 
-cameras = [6]
 only_ball_frames = False
 
-val_issia_dataset = create_issia_dataset(issia_dataset_path, cameras, mode='val', only_ball_frames=only_ball_frames)
-dataloaders = {'val': DataLoader(val_issia_dataset, batch_size=4, num_workers=2,
+val_snv3_dataset = create_snv3_dataset(snv3_dataset_path, tmode='valid', only_ball_frames=only_ball_frames)
+dataloaders = {'val': DataLoader(val_snv3_dataset, batch_size=4, num_workers=2,
                                  pin_memory=True, collate_fn=my_collate)}
 
-print('Validation set: Dataset size: {}'.format(len(dataloaders['val'].dataset)))
+print('Validation set: Dataset size: {}'.format(len(dataloaders['val'])))
 
 model = footandball.model_factory(model_name, 'detect', ball_threshold=ball_confidence_threshold,
                                   player_threshold=player_confidence_threshold)
@@ -55,8 +55,6 @@ phase = 'val'
 model.eval()
 
 # code from "train_detector"
-
-batch_stats = {'loss': [], 'loss_ball_c': [], 'loss_player_c': [], 'loss_player_l': []}
 
 # https://torchmetrics.readthedocs.io/en/stable/detection/mean_average_precision.html
 metric = MeanAveragePrecision(iou_type="bbox", class_metrics=True, compute_on_cpu=True,
