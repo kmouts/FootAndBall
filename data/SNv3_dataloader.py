@@ -155,7 +155,7 @@ class SNV3Dataset(Dataset):
                     data[i]["image"] = image
                     data[i]["bboxes"] = boxes
                     data[i]["labels"] = labels
-                return data
+                return data[i]["image"], data[i]["bboxes"], data[i]["labels"]
 
         return self.data[index]
 
