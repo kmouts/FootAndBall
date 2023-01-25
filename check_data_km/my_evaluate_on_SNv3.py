@@ -4,7 +4,6 @@ import pickle
 import sys
 from collections import defaultdict
 from pprint import pprint
-import copy
 
 import cv2
 import torch

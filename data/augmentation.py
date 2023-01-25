@@ -1,6 +1,8 @@
 # FootAndBall: Integrated Player and Ball Detector
 # Jacek Komorowski, Grzegorz Kurzejamski, Grzegorz Sarwas
 # Copyright (c) 2020 Sport Algorithmics and Gaming
+import copy
+
 import torch
 from torchvision import transforms
 from PIL import Image
@@ -100,16 +102,21 @@ def apply_transform_and_clip(boxes, labels, M, shape):
 def clip(boxes, labels, shape):
     """
     If a box is even partly outside the shape, it is being removed (!)
+    So now remove is the clipped area is more than half
     :param boxes: list of (x1, y1, x2, y2) coordinates
     :param shape: (width, height) tuple
     :return:
     """
-    boxes[:, 0::2].clip(min=0, max=shape[0] - 1, out=boxes[:, 0::2])  # Avoid dropping labels
-    boxes[:, 1::2].clip(min=0, max=shape[1] - 1, out=boxes[:, 1::2])
+    clipped_boxes = copy.deepcopy(boxes)
 
-    box_contained = lambda e: 0 <= e[0] < shape[0] and 0 <= e[1] < shape[1] and 0 <= e[2] < shape[0] and 0 <= e[3] < \
-                              shape[1]
-    mask = [box_contained(box) for box in boxes]
+    clipped_boxes[:, 0::2].clip(min=0, max=shape[0] - 1, out=clipped_boxes[:, 0::2])  # Avoid dropping labels
+    clipped_boxes[:, 1::2].clip(min=0, max=shape[1] - 1, out=clipped_boxes[:, 1::2])
+
+    box_contained = lambda e, b: abs((e[2] - e[0]) * (e[3] - e[1])) * 2 < abs((b[2] - b[0]) * (b[3] - b[1]))
+
+    # box_contained = lambda e: 0 <= e[0] < shape[0] and 0 <= e[1] < shape[1] and 0 <= e[2] < shape[0] and 0 <= e[3] < \
+    #                           shape[1]
+    mask = [not box_contained(*box) for box in zip(clipped_boxes, boxes)]
     return boxes[mask], labels[mask]
 
 
