@@ -31,6 +31,7 @@ denormalize_trans = transforms.Compose(
 normalize_trans = transforms.Compose([transforms.ToTensor(),
                                       transforms.Normalize(NORMALIZATION_MEAN, NORMALIZATION_STD)])
 
+
 def tensor2image(image, downscale=None):
     # Convert image encoded as normalized tensor back to numpy (opencv format)
     img = denormalize_trans(image)
@@ -103,10 +104,22 @@ def clip(boxes, labels, shape):
     :param shape: (width, height) tuple
     :return:
     """
+    boxes[:, 0::2].clip(min=0, max=shape[0] - 1, out=boxes[:, 0::2])  # Avoid dropping labels
+    boxes[:, 1::2].clip(min=0, max=shape[1] - 1, out=boxes[:, 1::2])
+
     box_contained = lambda e: 0 <= e[0] < shape[0] and 0 <= e[1] < shape[1] and 0 <= e[2] < shape[0] and 0 <= e[3] < \
                               shape[1]
     mask = [box_contained(box) for box in boxes]
     return boxes[mask], labels[mask]
+
+
+def check_boxes(image, boxes):
+    w, h = image.size
+
+    boxes[:, 0::2].clip(min=0, max=w - 1, out=boxes[:, 0::2])
+    boxes[:, 1::2].clip(min=0, max=h - 1, out=boxes[:, 1::2])
+
+    return image, boxes
 
 
 class ColorJitter(object):
@@ -291,6 +304,7 @@ class CenterCrop:
         image = F.crop(image, i, j, self.out_h, self.out_w)
         boxes[:, :2] -= (j, i)
         boxes[:, 2:4] -= (j, i)
+        # image, boxes = check_boxes(image, boxes)  # Avoid missing labels due the next mask clip --kmouts
         boxes, labels = clip(boxes, labels, (self.out_w, self.out_h))
         return image, boxes, labels
 
