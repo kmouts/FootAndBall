@@ -42,10 +42,13 @@ def make_dataloaders(params: Params):
 
 
 def my_collate(batch):
+    fpaths = []
     images = torch.stack([e[0] for e in batch], dim=0)
     boxes = [e[1] for e in batch]
     labels = [e[2] for e in batch]
-    return images, boxes, labels
+    if len(batch) == 4:
+        fpaths = [e[3] for e in batch]
+    return images, boxes, labels, fpaths
 
 
 class BalancedSampler(Sampler):

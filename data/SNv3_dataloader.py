@@ -136,26 +136,27 @@ class SNV3Dataset(Dataset):
     def __getitem__(self, index):
 
         if not self.preload_images:
-            data = copy.deepcopy(self.data[index])
+            local_data = copy.deepcopy(self.data[index])
             with torch.no_grad():
                 image_list = list()
-                for i, d in enumerate(data):
+                for i, d in enumerate(local_data):
                     if self.zipped_images:
                         imginfo = zipfile.ZipFile(d["zipfilepath"], 'r').open(d["imagefilepath"])
                         image = Image.open(imginfo)
                     else:
                         image = Image.open(d["filepath"])
 
-                    boxes, labels = np.array(data[i]["bboxes"], dtype=np.float), \
-                        np.array(data[i]["labels"], dtype=np.int64)
+                    boxes, labels = np.array(local_data[i]["bboxes"], dtype=np.float), \
+                        np.array(local_data[i]["labels"], dtype=np.int64)
                     image, boxes, labels = self.transform((image, boxes, labels))
                     boxes = torch.tensor(boxes, dtype=torch.float)
                     labels = torch.tensor(labels, dtype=torch.int64)
 
-                    data[i]["image"] = image
-                    data[i]["bboxes"] = boxes
-                    data[i]["labels"] = labels
-                return data[i]["image"], data[i]["bboxes"], data[i]["labels"]
+                    local_data[i]["image"] = image
+                    local_data[i]["bboxes"] = boxes
+                    local_data[i]["labels"] = labels
+
+                return local_data[i]["image"], local_data[i]["bboxes"], local_data[i]["labels"], local_data[i]["filepath"]
 
         return self.data[index]
 
