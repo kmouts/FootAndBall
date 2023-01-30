@@ -18,9 +18,9 @@ from .SoccerNet.utils import getListGames
 from argparse import ArgumentParser
 
 
-def create_snv3_dataset(dataset_path, tmode, only_ball_frames=False, tiny=None):
+def create_snv3_dataset(dataset_path, tmode, only_ball_frames=False, tiny=None, preload_images=False):
     # Get SoccerNet v3 Dataset
-    assert tmode == 'train' or tmode == 'valid' or tmode == 'test'
+    assert tmode == 'train' or tmode == 'valid' or tmode == 'test' or tmode == 'rgb_train'
     assert os.path.exists(dataset_path), 'Cannot find dataset: ' + str(dataset_path)
 
     train_image_size = (720, 1280)
@@ -33,8 +33,11 @@ def create_snv3_dataset(dataset_path, tmode, only_ball_frames=False, tiny=None):
         transform = augmentation.NoAugmentation(size=val_image_size)
     elif tmode == 'test':
         transform = augmentation.NoAugmentation(size=test_image_size)
+    elif tmode == 'rgb_train':
+        transform = augmentation.NoAugmentationForRGB(size=test_image_size)
 
-    dataset = SNV3Dataset(dataset_path, transform, split=tmode, only_ball_frames=only_ball_frames, tiny=tiny)
+    dataset = SNV3Dataset(dataset_path, transform, preload_images, split=tmode, only_ball_frames=only_ball_frames,
+                          tiny=tiny)
     return dataset
 
 

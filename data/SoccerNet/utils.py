@@ -52,7 +52,7 @@ def getListGames(split="v1", task="spotting"):
 
 
         elif task == "frames":
-            if spl == "train":
+            if spl == "train" or spl == "rgb_train":
                 jsonGamesFile = Path(__file__).parent / "data/SoccerNetFramesTrain.json"
             elif spl == "valid":
                 jsonGamesFile = Path(__file__).parent / "data/SoccerNetFramesValid.json"

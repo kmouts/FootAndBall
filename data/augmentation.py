@@ -329,6 +329,19 @@ class ToTensorAndNormalize(object):
         return self.image_transforms(image), boxes, classes
 
 
+class ToTensor(object):
+    # Convert image to tensors , ground truth is not changed
+    def __init__(self):
+        self.image_transforms = transforms.Compose([transforms.ToTensor(),
+                                                    ])
+
+    def __call__(self, sample):
+        # numpy image: H x W x C
+        # torch image: C X H X W
+        image, boxes, classes = sample
+        return self.image_transforms(image), boxes, classes
+
+
 class TrainAugmentation(object):
     def __init__(self, size):
         self.size = size
@@ -349,6 +362,18 @@ class NoAugmentation(object):
         self.augment = transforms.Compose([
             CenterCrop(self.size),
             ToTensorAndNormalize()
+        ])
+
+    def __call__(self, sample):
+        return self.augment(sample)
+
+
+class NoAugmentationForRGB(object):
+    def __init__(self, size):
+        self.size = size
+        self.augment = transforms.Compose([
+            CenterCrop(self.size),
+            ToTensor()
         ])
 
     def __call__(self, sample):
