@@ -21,8 +21,8 @@ sys.path.append('..')
 print(torch.cuda.get_device_name(0))
 torch.cuda.init()
 model_name = 'fb1'
-# model_weights_path = 'models/model_20201019_1416_final.pth'  # original
-model_weights_path = 'model_20230130_1926_final.pth'  # 1st my train
+model_weights_path = 'models/model_20201019_1416_final.pth'  # original
+# model_weights_path = 'models/model_20230130_1926_final.pth'  # 1st my train
 ball_confidence_threshold = 0.7
 player_confidence_threshold = 0.7
 my_device = 'cuda'
@@ -32,8 +32,9 @@ sanity_file_paths = []
 
 only_ball_frames = False
 
-val_snv3_dataset = create_snv3_dataset(snv3_dataset_path, tmode='test', only_ball_frames=only_ball_frames)
-dataloaders = {'test': DataLoader(val_snv3_dataset, batch_size=4, num_workers=2,
+test_snv3_dataset = create_snv3_dataset(snv3_dataset_path, tmode='test', only_ball_frames=only_ball_frames)
+dataloaders = {'test': DataLoader(test_snv3_dataset, batch_size=1,  # batch = 1, for different sizes
+                                  num_workers=2,
                                  pin_memory=True, collate_fn=my_collate)}
 
 print('Test set: Dataset size (in batches): {}'.format(len(dataloaders['test'])))
@@ -97,7 +98,7 @@ for ndx, (images, boxes, labels, fpaths) in enumerate(tqdm(dataloaders[phase])):
         ball_boxes_to_centers_list(t, pred_ball_pos)
 
     # Visualize gt and predictions
-    if count_batches == 1 or count_batches % 50 == 0:
+    if count_batches == 1 or count_batches % 500 == 0:
         sanity_file_paths.append((count_batches, fpaths[0]))
         # GT bounding boxes
         vis_gt_pred(images[0], boxes[0], labels[0], pred_cpu[0], tmp_path=snv3_tmp, batch_num=count_batches)

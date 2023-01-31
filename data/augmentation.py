@@ -354,10 +354,10 @@ class TrainAugmentation(object):
     def __init__(self, size, SNv3=False):
         self.size = size
         self.augment = transforms.Compose([
-            CenterCrop(self.size),
+
             ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1),
             RandomAffine(degrees=5, scale=(0.8, 1.2), p_hflip=0.5),
-            # RandomCrop(self.size),
+            RandomCrop(self.size),
             ToTensorAndNormalize(SNv3)
         ])
 
@@ -369,7 +369,7 @@ class NoAugmentation(object):
     def __init__(self, size, SNv3):
         self.size = size
         self.augment = transforms.Compose([
-            CenterCrop(self.size),
+            # CenterCrop(self.size),
             ToTensorAndNormalize(SNv3)
         ])
 
