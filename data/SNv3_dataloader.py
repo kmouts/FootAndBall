@@ -102,9 +102,9 @@ class SNV3Dataset(Dataset):
                         with torch.no_grad():
                             if self.zipped_images:
                                 imginfo = zippedFrames.open(img)
-                                data_tmp["image"] = self.resize(transforms.ToTensor()(Image.open(imginfo)) * 255)
+                                data_tmp["image"] = transforms.ToTensor()(Image.open(imginfo)) * 255
                             else:
-                                data_tmp["image"] = self.resize(torchvision.io.read_image(filepath))
+                                data_tmp["image"] = torchvision.io.read_image(filepath)
 
                     data_tmp["zipfilepath"] = zipfilepath
                     data_tmp["imagefilepath"] = img
