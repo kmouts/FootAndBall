@@ -159,7 +159,8 @@ class SNV3Dataset(Dataset):
                     local_data[i]["bboxes"] = boxes
                     local_data[i]["labels"] = labels
 
-                return local_data[i]["image"], local_data[i]["bboxes"], local_data[i]["labels"], local_data[i]["filepath"]
+                return local_data[i]["image"], local_data[i]["bboxes"], local_data[i]["labels"], \
+                    local_data[i]["filepath"]
 
         return self.data[index]
 
