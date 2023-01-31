@@ -70,7 +70,7 @@ def train_model(model, optimizer, scheduler, num_epochs, dataloaders, device, mo
             # Iterate over data.
             for ndx, (images, boxes, labels, _) in enumerate(tqdm(dataloaders[phase])):
 
-                if ndx == 0:
+                if epoch == 0 and ndx == 0:
                     fig = plt.figure(figsize=(14, 7))
                     for i in range(12):
                         ax = fig.add_subplot(3, 4, i + 1, xticks=[], yticks=[])
