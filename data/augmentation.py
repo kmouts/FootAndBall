@@ -21,17 +21,20 @@ PLAYER_LABEL = 2
 # Size of the ball bbox in pixels (fixed as we detect only ball center)
 BALL_BBOX_SIZE = 40
 
-NORMALIZATION_MEAN = [0.485, 0.456, 0.406]
-NORMALIZATION_STD = [0.229, 0.224, 0.225]
+ISSIA_NORMALIZATION_MEAN = [0.485, 0.456, 0.406]
+ISSIA_NORMALIZATION_STD = [0.229, 0.224, 0.225]
+
+SNv3_NORMALIZATION_MEAN = [0.3827, 0.4484, 0.2944]
+SNv3_NORMALIZATION_STD = [0.1904, 0.2043, 0.2106]
 
 # Tensor to numpy transform
 
 denormalize_trans = transforms.Compose(
-    [transforms.Normalize(mean=[0., 0., 0.], std=[1.0 / e for e in NORMALIZATION_STD]),
-     transforms.Normalize(mean=[-e for e in NORMALIZATION_MEAN], std=[1., 1., 1.])])
+    [transforms.Normalize(mean=[0., 0., 0.], std=[1.0 / e for e in ISSIA_NORMALIZATION_STD]),
+     transforms.Normalize(mean=[-e for e in ISSIA_NORMALIZATION_MEAN], std=[1., 1., 1.])])
 
 normalize_trans = transforms.Compose([transforms.ToTensor(),
-                                      transforms.Normalize(NORMALIZATION_MEAN, NORMALIZATION_STD)])
+                                      transforms.Normalize(ISSIA_NORMALIZATION_MEAN, ISSIA_NORMALIZATION_STD)])
 
 
 def tensor2image(image, downscale=None):
@@ -318,7 +321,12 @@ class CenterCrop:
 
 class ToTensorAndNormalize(object):
     # Convert image to tensors and normalize the image, ground truth is not changed
-    def __init__(self):
+    def __init__(self, SNv3=False):
+        NORMALIZATION_MEAN = ISSIA_NORMALIZATION_MEAN
+        NORMALIZATION_STD = ISSIA_NORMALIZATION_STD
+        if SNv3:
+            NORMALIZATION_MEAN = SNv3_NORMALIZATION_MEAN
+            NORMALIZATION_STD = SNv3_NORMALIZATION_STD
         self.image_transforms = transforms.Compose([transforms.ToTensor(),
                                                     transforms.Normalize(NORMALIZATION_MEAN, NORMALIZATION_STD)])
 
@@ -343,13 +351,14 @@ class ToTensor(object):
 
 
 class TrainAugmentation(object):
-    def __init__(self, size):
+    def __init__(self, size, SNv3=False):
         self.size = size
         self.augment = transforms.Compose([
+            CenterCrop(self.size),
             ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1),
             RandomAffine(degrees=5, scale=(0.8, 1.2), p_hflip=0.5),
-            RandomCrop(self.size),
-            ToTensorAndNormalize()
+            # RandomCrop(self.size),
+            ToTensorAndNormalize(SNv3)
         ])
 
     def __call__(self, sample):
@@ -357,11 +366,11 @@ class TrainAugmentation(object):
 
 
 class NoAugmentation(object):
-    def __init__(self, size):
+    def __init__(self, size, SNv3):
         self.size = size
         self.augment = transforms.Compose([
             CenterCrop(self.size),
-            ToTensorAndNormalize()
+            ToTensorAndNormalize(SNv3)
         ])
 
     def __call__(self, sample):

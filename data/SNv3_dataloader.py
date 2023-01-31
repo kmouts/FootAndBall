@@ -28,11 +28,11 @@ def create_snv3_dataset(dataset_path, tmode, only_ball_frames=False, tiny=None, 
     test_image_size = (720, 1280)
 
     if tmode == 'train':
-        transform = augmentation.TrainAugmentation(size=train_image_size)
+        transform = augmentation.TrainAugmentation(size=train_image_size, SNv3=True)
     elif tmode == 'valid':
-        transform = augmentation.NoAugmentation(size=val_image_size)
+        transform = augmentation.NoAugmentation(size=val_image_size, SNv3=True)
     elif tmode == 'test':
-        transform = augmentation.NoAugmentation(size=test_image_size)
+        transform = augmentation.NoAugmentation(size=test_image_size, SNv3=True)
     elif tmode == 'rgb_train':
         transform = augmentation.NoAugmentationForRGB(size=test_image_size)
 
@@ -43,7 +43,7 @@ def create_snv3_dataset(dataset_path, tmode, only_ball_frames=False, tiny=None, 
 
 class SNV3Dataset(Dataset):
 
-    def __init__(self, path, transform, only_ball=False, split="all", resolution=(1080, 1920), preload_images=False,
+    def __init__(self, path, transform, only_ball=False, split="all", resolution=(720, 1280), preload_images=False,
                  tiny=None,
                  zipped_images=True, only_ball_frames=False):
 
@@ -178,9 +178,9 @@ if __name__ == "__main__":
     parser.add_argument('--split', required=False, type=str, default="all", help='Select the split of data')
     parser.add_argument('--num_workers', required=False, type=int, default=4,
                         help='number of workers for the dataloader')
-    parser.add_argument('--resolution_width', required=False, type=int, default=1920,
+    parser.add_argument('--resolution_width', required=False, type=int, default=1280,
                         help='width resolution of the images')
-    parser.add_argument('--resolution_height', required=False, type=int, default=1080,
+    parser.add_argument('--resolution_height', required=False, type=int, default=720,
                         help='height resolution of the images')
     parser.add_argument('--preload_images', action='store_true',
                         help="Preload the images when constructing the dataset")

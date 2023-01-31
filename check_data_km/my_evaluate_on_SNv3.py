@@ -2,10 +2,8 @@ import os
 import pickle
 # os.system('nvidia-smi')
 import sys
-from collections import defaultdict
 from pprint import pprint
 
-import cv2
 import torch
 from tqdm import tqdm
 from torch.utils.data import DataLoader
@@ -14,18 +12,17 @@ import numpy as np
 
 from data.SNv3_dataloader import create_snv3_dataset
 from data.SoccerNet.utils import vis_gt_pred
-from data.SoccerNet.visualize import torch2cv2
-from data.augmentation import tensor2image
+
 from data.data_reader import my_collate
-from data.issia_dataset_km import P_IssiaDataset, create_issia_dataset
-from data.issia_utils import evaluate_ball_detection_results, _ball_detection_stats, ball_boxes_to_centers_list
+from data.issia_utils import  _ball_detection_stats, ball_boxes_to_centers_list
 from network import footandball
 
 sys.path.append('..')
 print(torch.cuda.get_device_name(0))
 torch.cuda.init()
 model_name = 'fb1'
-model_weights_path = 'models/model_20201019_1416_final.pth'
+# model_weights_path = 'models/model_20201019_1416_final.pth'  # original
+model_weights_path = 'model_20230130_1926_final.pth'  # 1st my train
 ball_confidence_threshold = 0.7
 player_confidence_threshold = 0.7
 my_device = 'cuda'
