@@ -81,6 +81,7 @@ class SNV3Dataset(Dataset):
                 IDs_list = list()
 
                 zipfilepath = os.path.join(self.path, annotations["GameMetadata"]["UrlLocal"], 'Frames-v3.zip')
+                zippedFrames = None
                 if self.zipped_images:
                     zippedFrames = zipfile.ZipFile(zipfilepath, 'r')
 

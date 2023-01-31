@@ -1,7 +1,7 @@
 # FootAndBall: Integrated Player and Ball Detector
 # Jacek Komorowski, Grzegorz Kurzejamski, Grzegorz Sarwas
 # Copyright (c) 2020 Sport Algorithmics and Gaming
-
+from matplotlib import pyplot as plt
 #
 # Train FootAndBall detector on ISSIA-CNR Soccer and SoccerPlayerDetection dataset
 #
@@ -69,6 +69,15 @@ def train_model(model, optimizer, scheduler, num_epochs, dataloaders, device, mo
             count_batches = 0
             # Iterate over data.
             for ndx, (images, boxes, labels, _) in enumerate(tqdm(dataloaders[phase])):
+
+                if ndx == 0:
+                    fig = plt.figure(figsize=(14, 7))
+                    for i in range(12):
+                        ax = fig.add_subplot(3, 4, i + 1, xticks=[], yticks=[])
+                        plt.imshow(images[i].numpy().transpose(1, 2, 0))
+                    plt.show()
+                    # break
+
                 images = images.to(device)
                 h, w = images.shape[-2], images.shape[-1]
                 gt_maps = model.groundtruth_maps(boxes, labels, (h, w))
@@ -127,7 +136,7 @@ def train(params: Params):
     only_ball_frames = False
     val_snv3_dataset = create_snv3_dataset(snv3_dataset_path, tmode='valid', only_ball_frames=only_ball_frames)
     train_snv3_dataset = create_snv3_dataset(snv3_dataset_path, tmode='train', only_ball_frames=only_ball_frames)
-    dataloaders = {'val': DataLoader(val_snv3_dataset, batch_size=params.batch_size, num_workers=params.num_workers,
+    dataloaders = {'val': DataLoader(val_snv3_dataset, batch_size=1, num_workers=params.num_workers,
                                      pin_memory=True, collate_fn=my_collate),
                    'train': DataLoader(train_snv3_dataset, batch_size=params.batch_size, num_workers=params.num_workers,
                                        pin_memory=True, collate_fn=my_collate)}
