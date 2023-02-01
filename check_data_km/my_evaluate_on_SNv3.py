@@ -23,6 +23,7 @@ torch.cuda.init()
 model_name = 'fb1'
 model_weights_path = 'models/model_20201019_1416_final.pth'  # original
 # model_weights_path = 'models/model_20230130_1926_final.pth'  # 1st my train
+model_weights_path = 'models/model_20230131_1740_final.pth'  # 2nd my train
 ball_confidence_threshold = 0.7
 player_confidence_threshold = 0.7
 my_device = 'cuda'
