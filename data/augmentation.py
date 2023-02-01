@@ -27,19 +27,32 @@ ISSIA_NORMALIZATION_STD = [0.229, 0.224, 0.225]
 SNv3_NORMALIZATION_MEAN = [0.3827, 0.4484, 0.2944]
 SNv3_NORMALIZATION_STD = [0.1904, 0.2043, 0.2106]
 
+
 # Tensor to numpy transform
+def denormalize_trans(image, snv3=False):
+    NORMALIZATION_MEAN = ISSIA_NORMALIZATION_MEAN
+    NORMALIZATION_STD = ISSIA_NORMALIZATION_STD
+    if snv3:
+        NORMALIZATION_MEAN = SNv3_NORMALIZATION_MEAN
+        NORMALIZATION_STD = SNv3_NORMALIZATION_STD
+    return transforms.Compose(
+        [transforms.Normalize(mean=[0., 0., 0.], std=[1.0 / e for e in NORMALIZATION_STD]),
+         transforms.Normalize(mean=[-e for e in NORMALIZATION_MEAN], std=[1., 1., 1.])])(image)
 
-denormalize_trans = transforms.Compose(
-    [transforms.Normalize(mean=[0., 0., 0.], std=[1.0 / e for e in ISSIA_NORMALIZATION_STD]),
-     transforms.Normalize(mean=[-e for e in ISSIA_NORMALIZATION_MEAN], std=[1., 1., 1.])])
 
-normalize_trans = transforms.Compose([transforms.ToTensor(),
-                                      transforms.Normalize(ISSIA_NORMALIZATION_MEAN, ISSIA_NORMALIZATION_STD)])
+def normalize_trans(image, snv3=False):
+    NORMALIZATION_MEAN = ISSIA_NORMALIZATION_MEAN
+    NORMALIZATION_STD = ISSIA_NORMALIZATION_STD
+    if snv3:
+        NORMALIZATION_MEAN = SNv3_NORMALIZATION_MEAN
+        NORMALIZATION_STD = SNv3_NORMALIZATION_STD
+    return transforms.Compose([transforms.ToTensor(),
+                               transforms.Normalize(NORMALIZATION_MEAN, NORMALIZATION_STD)])(image)
 
 
-def tensor2image(image, downscale=None):
+def tensor2image(image, downscale=None, snv3=False):
     # Convert image encoded as normalized tensor back to numpy (opencv format)
-    img = denormalize_trans(image)
+    img = denormalize_trans(image, snv3=False)
     temp = img.permute(1, 2, 0).cpu().numpy()
     # Convert from RBG to BGR (OpenCV default color space) and return as the continuous array
     temp = np.ascontiguousarray(temp[:, :, (2, 1, 0)])

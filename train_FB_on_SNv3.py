@@ -75,7 +75,6 @@ def train_model(model, optimizer, scheduler, num_epochs, dataloaders, device, mo
                     fig = plt.figure(figsize=(14, 7))
                     for i in range(12):
                         ax = fig.add_subplot(3, 4, i + 1, xticks=[], yticks=[])
-                        # plt.imshow(images[i].numpy().transpose(1, 2, 0))
                         plt.imshow(tensor2image(images[i]))
                     plt.show()
                     # break
