@@ -296,9 +296,19 @@ class RandomCrop:
     def get_params(self, h, w):
         if w == self.out_w and h == self.out_h:
             return 0, 0
-        i = random.randint(0, h - self.out_h)
-        j = random.randint(0, w - self.out_w)
-        return i, j
+        difh = h - self.out_h  # handle smaller than self.out images
+        difw = w - self.out_w
+
+        if difh < 0 and difw < 0:
+            return random.randint(0, -difh), random.randint(0, -difw)
+        elif difh < 0:
+            return random.randint(0, -difh), random.randint(0, difw)
+        elif difw < 0:
+            return random.randint(0, difh), random.randint(0, -difw)
+        else:
+            i = random.randint(0, difh)
+            j = random.randint(0, difw)
+            return i, j
 
     def __call__(self, sample):
         image, boxes, labels = sample
@@ -311,6 +321,8 @@ class RandomCrop:
 
 
 class CenterCrop:
+    """If image size is smaller than output size along any edge, image is padded with 0 and then center cropped"""
+
     def __init__(self, size):
         self.out_h, self.out_w = size
 
