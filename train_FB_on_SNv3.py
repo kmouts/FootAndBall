@@ -25,7 +25,8 @@ from data.data_reader import make_dataloaders, my_collate
 from network.ssd_loss import SSDLoss
 from misc.config import Params
 
-snv3_dataset_path = '/mnt/DATA/DATASETS/SOCCERNETv3/SNV3/SNV3_PIP_data_final'
+# snv3_dataset_path = '/mnt/DATA/DATASETS/SOCCERNETv3/SNV3/SNV3_PIP_data_final'
+snv3_dataset_path = '/home/kmouts/Projects/SNV3/SNV3_PIP_data_final'
 
 MODEL_FOLDER = 'models'
 
