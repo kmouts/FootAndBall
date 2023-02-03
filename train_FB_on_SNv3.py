@@ -1,6 +1,7 @@
 # FootAndBall: Integrated Player and Ball Detector
 # Jacek Komorowski, Grzegorz Kurzejamski, Grzegorz Sarwas
 # Copyright (c) 2020 Sport Algorithmics and Gaming
+import torchvision
 from matplotlib import pyplot as plt
 #
 # Train FootAndBall detector on ISSIA-CNR Soccer and SoccerPlayerDetection dataset
@@ -17,6 +18,7 @@ import time
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 
 from data.SNv3_dataloader import create_snv3_dataset
 from data.augmentation import tensor2image
@@ -24,6 +26,8 @@ from network import footandball
 from data.data_reader import make_dataloaders, my_collate
 from network.ssd_loss import SSDLoss
 from misc.config import Params
+
+writer = SummaryWriter('runs/fb_exp_train_2')
 
 # snv3_dataset_path = '/mnt/DATA/DATASETS/SOCCERNETv3/SNV3/SNV3_PIP_data_final'
 snv3_dataset_path = '/home/kmouts/Projects/SNV3/SNV3_PIP_data_final'
@@ -73,17 +77,18 @@ def train_model(model, optimizer, scheduler, num_epochs, dataloaders, device, mo
             for ndx, (images, boxes, labels, _) in enumerate(tqdm(dataloaders[phase])):
 
                 if epoch == 0 and ndx == 0 and phase == 'train':
-                    fig = plt.figure(figsize=(14, 7))
-                    for i in range(12):
-                        ax = fig.add_subplot(3, 4, i + 1, xticks=[], yticks=[])
-                        plt.imshow(tensor2image(images[i]))
-                    plt.show()
-                    # break
+                    # create grid of images
+                    img_grid = torchvision.utils.make_grid(images, nrow=6)
+                    img = tensor2image(img_grid, snv3=True)
+                    # plt.imshow(img)
+                    # plt.show()
+                    # write to tensorboard
+                    writer.add_image('1st_train_batch', img, dataformats='HWC')
 
-                images = images.to(device)
+                images = images.to(device, non_blocking=True)
                 h, w = images.shape[-2], images.shape[-1]
                 gt_maps = model.groundtruth_maps(boxes, labels, (h, w))
-                gt_maps = [e.to(device) for e in gt_maps]
+                gt_maps = [e.to(device, non_blocking=True) for e in gt_maps]
                 count_batches += 1
 
                 with torch.set_grad_enabled(phase == 'train'):
@@ -106,6 +111,14 @@ def train_model(model, optimizer, scheduler, num_epochs, dataloaders, device, mo
                 batch_stats['loss_player_c'].append(loss_c_player.item())
                 batch_stats['loss_player_l'].append(loss_l_player.item())
 
+                writer.add_scalar("Loss total/{}".format(phase),
+                                  loss, epoch * len(dataloaders[phase]) + ndx)
+                writer.add_scalar("Ball conf Loss /{}".format(phase),
+                                  loss_c_ball, epoch * len(dataloaders[phase]) + ndx)
+                writer.add_scalar("Player conf Loss/{}".format(phase),
+                                  loss_c_player, epoch * len(dataloaders[phase]) + ndx)
+                writer.add_scalar("Player Loc Loss/{}".format(phase),
+                                  loss_l_player, epoch * len(dataloaders[phase]) + ndx)
             # Average stats per batch
             avg_batch_stats = {}
             for e in batch_stats:
