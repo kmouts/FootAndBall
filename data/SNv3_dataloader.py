@@ -18,7 +18,7 @@ from .SoccerNet.utils import getListGames
 from argparse import ArgumentParser
 
 
-def create_snv3_dataset(dataset_path, tmode, only_ball_frames=False, tiny=None, preload_images=False):
+def create_snv3_dataset(dataset_path, tmode, only_ball_frames=False, tiny=None, preload_images=False, meta_only=False):
     # Get SoccerNet v3 Dataset
     assert tmode == 'train' or tmode == 'valid' or tmode == 'test' or tmode == 'rgb_train'
     assert os.path.exists(dataset_path), 'Cannot find dataset: ' + str(dataset_path)
@@ -37,17 +37,20 @@ def create_snv3_dataset(dataset_path, tmode, only_ball_frames=False, tiny=None, 
         transform = augmentation.NoAugmentationForRGB(size=test_image_size)
 
     dataset = SNV3Dataset(dataset_path, transform, preload_images, split=tmode, only_ball_frames=only_ball_frames,
-                          tiny=tiny)
+                          tiny=tiny, meta_only=meta_only)
     return dataset
 
 
 class SNV3Dataset(Dataset):
 
     def __init__(self, path, transform, only_ball=False, split="all", resolution=(720, 1280), preload_images=False,
-                 tiny=None,
-                 zipped_images=True, only_ball_frames=False):
+                 tiny=None, meta_only=False,
+                 zipped_images=True, only_ball_frames=False, max_player_height=0):
 
         self.transform = transform
+
+        self.only_ball_frames = only_ball_frames
+        self.meta_only = meta_only
 
         # Path for the SoccerNet-v3 dataset
         # containing the images and labels
@@ -110,9 +113,17 @@ class SNV3Dataset(Dataset):
                     data_tmp["imagefilepath"] = img
                     data_tmp["filepath"] = filepath
 
-                    data_tmp["bboxes"], data_tmp["labels"] = self.format_bboxes(annotations[img_type][img]["bboxes"],
-                                                                                annotations[img_type][img][
-                                                                                    "imageMetadata"])
+                    data_tmp["bboxes"], data_tmp["labels"], \
+                        data_tmp["ball_in_frame"], data_tmp["max_height"], \
+                        data_tmp["im_dim"] = self.format_bboxes(annotations[img_type][img]["bboxes"],
+                                                                annotations[img_type][img]["imageMetadata"])
+
+                    # filter out image with larger player height
+                    if max_player_height and data_tmp["max_height"] > max_player_height:
+                        continue
+
+                    if self.only_ball_frames and not data_tmp["ball_in_frame"]:
+                        continue
 
                     self.data[-1].append(data_tmp)
 
@@ -122,11 +133,15 @@ class SNV3Dataset(Dataset):
         boxes = list()
 
         labels = list()
+        ball_in_frame = False
+        max_height = 0
+        im_dim = (int(image_metadata["height"]), int(image_metadata["width"]))
 
         for i, bbox in enumerate(bboxes):
             bboxc = bbox["class"]
             if bboxc is not None:
                 if bboxc == "Ball":
+                    ball_in_frame = True
                     labels.append(BALL_LABEL)
                     boxes.append(
                         (bbox["points"]["x1"], bbox["points"]["y1"], bbox["points"]["x2"], bbox["points"]["y2"]))
@@ -134,8 +149,11 @@ class SNV3Dataset(Dataset):
                     labels.append(PLAYER_LABEL)
                     boxes.append(
                         (bbox["points"]["x1"], bbox["points"]["y1"], bbox["points"]["x2"], bbox["points"]["y2"]))
+                    player_height = bbox["points"]["y2"] - bbox["points"]["y1"]
+                    if player_height > max_height:
+                        max_height = player_height
 
-        return boxes, labels
+        return boxes, labels, ball_in_frame, max_height, im_dim
 
     def __getitem__(self, index):
 
@@ -144,15 +162,18 @@ class SNV3Dataset(Dataset):
             with torch.no_grad():
                 image_list = list()
                 for i, d in enumerate(local_data):
-                    if self.zipped_images:
-                        imginfo = zipfile.ZipFile(d["zipfilepath"], 'r').open(d["imagefilepath"])
-                        image = Image.open(imginfo)
-                    else:
-                        image = Image.open(d["filepath"])
+                    image = []
+                    if not self.meta_only:
+                        if self.zipped_images:
+                            imginfo = zipfile.ZipFile(d["zipfilepath"], 'r').open(d["imagefilepath"])
+                            image = Image.open(imginfo)
+                        else:
+                            image = Image.open(d["filepath"])
 
                     boxes, labels = np.array(local_data[i]["bboxes"], dtype=np.float), \
                         np.array(local_data[i]["labels"], dtype=np.int64)
-                    image, boxes, labels = self.transform((image, boxes, labels))
+                    if not self.meta_only:
+                        image, boxes, labels = self.transform((image, boxes, labels))
                     boxes = torch.tensor(boxes, dtype=torch.float)
                     labels = torch.tensor(labels, dtype=torch.int64)
 
@@ -161,7 +182,8 @@ class SNV3Dataset(Dataset):
                     local_data[i]["labels"] = labels
 
                 return local_data[i]["image"], local_data[i]["bboxes"], local_data[i]["labels"], \
-                    local_data[i]["filepath"]
+                    local_data[i]["filepath"], local_data[i]["im_dim"], local_data[i]["max_height"], \
+                    local_data[i]["ball_in_frame"]
 
         return self.data[index]
 

@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from pathlib import Path
 import json
 import os
@@ -62,7 +63,7 @@ def getListGames(split="v1", task="spotting"):
                 jsonGamesFile = Path(__file__).parent / "data/SoccerNetFramesChallenge.json"
 
         with open(jsonGamesFile, "r") as json_file:
-            dictionary = json.load(json_file)
+            dictionary = json.load(json_file, object_pairs_hook=OrderedDict)  # ensure same filelist order
 
         for championship in dictionary:
             for season in dictionary[championship]:
