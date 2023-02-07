@@ -17,11 +17,11 @@ snv3_dataset_path = '/home/kmouts/Projects/SNV3/SNV3_PIP_data_final'
 only_ball_frames = False
 
 modes = ["train", "valid", "test"]
+mytest = 1
 
 
-
-list_games = getListGames(split=modes[0], task="frames")
-snv3_dataset = create_snv3_dataset(snv3_dataset_path, tmode=modes[0], only_ball_frames=only_ball_frames,
+list_games = getListGames(split=modes[mytest], task="frames")
+snv3_dataset = create_snv3_dataset(snv3_dataset_path, tmode=modes[mytest], only_ball_frames=only_ball_frames,
                                    meta_only=True)
 
 images_dim = [None] * len(snv3_dataset)
@@ -34,9 +34,9 @@ for ind, data_im in enumerate(tqdm(snv3_dataset)):
     ball_in_frame[ind] = data_im[6]
 
 # Test with creating a new dataset
-list_games2 = getListGames(split=modes[0], task="frames")
+list_games2 = getListGames(split=modes[mytest], task="frames")
 assert list_games2 == list_games
-snv3_dataset = create_snv3_dataset(snv3_dataset_path, tmode=modes[0], only_ball_frames=only_ball_frames,
+snv3_dataset = create_snv3_dataset(snv3_dataset_path, tmode=modes[mytest], only_ball_frames=only_ball_frames,
                                    meta_only=True)
 
 images_dim2 = [None] * len(snv3_dataset)
