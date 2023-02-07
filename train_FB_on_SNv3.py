@@ -26,8 +26,14 @@ from network import footandball
 from data.data_reader import make_dataloaders, my_collate
 from network.ssd_loss import SSDLoss
 from misc.config import Params
+import random
 
-writer = SummaryWriter('runs/fb_exp_train_2')
+torch.manual_seed(10)
+random.seed(10)
+np.random.seed(10)
+torch.backends.cudnn.benchmark = False
+
+writer = SummaryWriter('runs/fb_exp_train_2_150_epochs_deterministic')
 
 # snv3_dataset_path = '/mnt/DATA/DATASETS/SOCCERNETv3/SNV3/SNV3_PIP_data_final'
 snv3_dataset_path = '/home/kmouts/Projects/SNV3/SNV3_PIP_data_final'
