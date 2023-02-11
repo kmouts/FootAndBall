@@ -5,6 +5,7 @@ import os
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import ticker
 from tqdm import tqdm
 import matplotlib
 
@@ -46,11 +47,15 @@ for i, mode in enumerate(modes):
 
     axes[i, 0].hist(images_dim, color=colors[i])
     axes[i, 0].set_ylabel('# of images', fontsize=8)
+    # axes[i, 0].yaxis.set_major_locator(ticker.MultipleLocator(5000))
+    axes[i, 0].tick_params(axis='y', labelsize=5)
     axes[i, 0].tick_params(axis='x', labelsize=6, rotation=90)
     if i == 0:
         axes[i, 0].set_title("Image dimensions", fontsize=10)
 
     axes[i, 1].hist(players_max_height, color=colors[i])
+    axes[i, 1].tick_params(axis='y', labelsize=5)
+    axes[i, 1].tick_params(axis='x', labelsize=6)
     axes[i, 1].set_ylabel('# of players', fontsize=8)
     axes[i, 1].set_xlabel('Height in pixels', fontsize=8)
     if i == 0:
@@ -58,6 +63,8 @@ for i, mode in enumerate(modes):
 
     axes[i, 2].hist(np.array(ball_in_frame, dtype=int), bins=[0, 0.5, 1], rwidth=0.8, color=colors[i])
     axes[i, 2].set_xticks(ticks=[0.3, 0.8], labels=['no ball', 'with ball'])
+    axes[i, 2].tick_params(axis='y', labelsize=5)
+    axes[i, 2].tick_params(axis='x', labelsize=8)
     axes[i, 2].set_ylabel('# of images', fontsize=8)
     if i == 0:
         axes[i, 2].set_title('Frames with ball', fontsize=10)
