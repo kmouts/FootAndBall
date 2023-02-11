@@ -31,8 +31,10 @@ snv3_tmp = '/mnt/DATA/DATASETS/SOCCERNETv3/tmp/'
 sanity_file_paths = []
 
 only_ball_frames = False
+MAX_PLAYER_HEIGHT = 250  # 0
 
-test_snv3_dataset = create_snv3_dataset(snv3_dataset_path, tmode='test', only_ball_frames=only_ball_frames)
+test_snv3_dataset = create_snv3_dataset(snv3_dataset_path, tmode='test', only_ball_frames=only_ball_frames,
+                                        max_player_height=MAX_PLAYER_HEIGHT)
 dataloaders = {'test': DataLoader(test_snv3_dataset, batch_size=1,  # batch = 1, for different sizes
                                   num_workers=2,
                                  pin_memory=True, collate_fn=my_collate)}
