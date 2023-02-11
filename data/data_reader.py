@@ -46,7 +46,7 @@ def my_collate(batch):
     images = torch.stack([e[0] for e in batch], dim=0)
     boxes = [e[1] for e in batch]
     labels = [e[2] for e in batch]
-    if len(batch[0]) == 4:  # fpaths included in the batch (for SNv3)
+    if len(batch[0]) >= 4:  # fpaths included in the batch (for SNv3)
         fpaths = [e[3] for e in batch]
     return images, boxes, labels, fpaths
 

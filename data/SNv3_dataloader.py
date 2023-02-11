@@ -71,7 +71,8 @@ class SNV3Dataset(Dataset):
             self.metadata.append(json.load(open(os.path.join(self.path, game, "Labels-v3.json"))))
 
         # Variables to store the preloaded images and annotations
-        # Each element in the list is a list of images and annotations linked to an action
+        # Each element in the list WAS a list of images and annotations linked to an action
+        # now each element is one data_tmp dict
         self.data = list()
         for annotations in tqdm(self.metadata):
 
@@ -80,7 +81,7 @@ class SNV3Dataset(Dataset):
 
                 # concatenate the replays of each action with itself
                 img_list = [action_name] + annotations["actions"][action_name]["linked_replays"]
-                self.data.append(list())
+
                 IDs_list = list()
 
                 zipfilepath = os.path.join(self.path, annotations["GameMetadata"]["UrlLocal"], 'Frames-v3.zip')
@@ -88,7 +89,7 @@ class SNV3Dataset(Dataset):
                 if self.zipped_images:
                     zippedFrames = zipfile.ZipFile(zipfilepath, 'r')
 
-                # For each image extract the images and annotations
+                # For each IMAGE extract the IMAGES(! replays..) and annotations
                 for i, img in enumerate(img_list):
 
                     # Variable to save the annotation
@@ -125,7 +126,7 @@ class SNV3Dataset(Dataset):
                     if self.only_ball_frames and not data_tmp["ball_in_frame"]:
                         continue
 
-                    self.data[-1].append(data_tmp)
+                    self.data.append(data_tmp)
 
     def format_bboxes(self, bboxes, image_metadata):
 
@@ -161,29 +162,29 @@ class SNV3Dataset(Dataset):
             local_data = copy.deepcopy(self.data[index])
             with torch.no_grad():
                 image_list = list()
-                for i, d in enumerate(local_data):
-                    image = []
-                    if not self.meta_only:
-                        if self.zipped_images:
-                            imginfo = zipfile.ZipFile(d["zipfilepath"], 'r').open(d["imagefilepath"])
-                            image = Image.open(imginfo)
-                        else:
-                            image = Image.open(d["filepath"])
 
-                    boxes, labels = np.array(local_data[i]["bboxes"], dtype=np.float), \
-                        np.array(local_data[i]["labels"], dtype=np.int64)
-                    if not self.meta_only:
-                        image, boxes, labels = self.transform((image, boxes, labels))
-                    boxes = torch.tensor(boxes, dtype=torch.float)
-                    labels = torch.tensor(labels, dtype=torch.int64)
+                image = []
+                if not self.meta_only:
+                    if self.zipped_images:
+                        imginfo = zipfile.ZipFile(local_data["zipfilepath"], 'r').open(local_data["imagefilepath"])
+                        image = Image.open(imginfo)
+                    else:
+                        image = Image.open(local_data["filepath"])
 
-                    local_data[i]["image"] = image
-                    local_data[i]["bboxes"] = boxes
-                    local_data[i]["labels"] = labels
+                boxes, labels = np.array(local_data["bboxes"], dtype=np.float), \
+                    np.array(local_data["labels"], dtype=np.int64)
+                if not self.meta_only:
+                    image, boxes, labels = self.transform((image, boxes, labels))
+                boxes = torch.tensor(boxes, dtype=torch.float)
+                labels = torch.tensor(labels, dtype=torch.int64)
 
-                return local_data[i]["image"], local_data[i]["bboxes"], local_data[i]["labels"], \
-                    local_data[i]["filepath"], local_data[i]["im_dim"], local_data[i]["max_height"], \
-                    local_data[i]["ball_in_frame"]
+                local_data["image"] = image
+                local_data["bboxes"] = boxes
+                local_data["labels"] = labels
+
+                return local_data["image"], local_data["bboxes"], local_data["labels"], \
+                    local_data["filepath"], local_data["im_dim"], local_data["max_height"], \
+                    local_data["ball_in_frame"]
 
         return self.data[index]
 

@@ -22,8 +22,7 @@ print(torch.cuda.get_device_name(0))
 torch.cuda.init()
 model_name = 'fb1'
 model_weights_path = 'models/model_20201019_1416_final.pth'  # original
-# model_weights_path = 'models/model_20230130_1926_final.pth'  # 1st my train
-model_weights_path = 'models/model_20230131_1740_final.pth'  # 2nd my train
+# model_weights_path = 'models/model_20230209_1818_final.pth'  # 150epochs deterministic train on whole SNv3
 ball_confidence_threshold = 0.7
 player_confidence_threshold = 0.7
 my_device = 'cuda'
@@ -73,7 +72,8 @@ pred_ball_pos = []
 
 
 # Iterate over data.
-for ndx, (images, boxes, labels, fpaths) in enumerate(tqdm(dataloaders[phase])):
+for ndx, im_data in enumerate(tqdm(dataloaders[phase])):
+    images, boxes, labels, fpaths = im_data[0], im_data[1], im_data[2], im_data[3]
     target = [{'boxes': b.detach().cpu(), 'labels': l.detach().cpu()} for b, l in zip(boxes, labels)]
     images = images.to(my_device)
 

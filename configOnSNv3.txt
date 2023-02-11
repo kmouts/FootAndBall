@@ -1,6 +1,6 @@
 [DEFAULT]
 
-epochs=20
+epochs=150
 lr=1e-3
 batch_size=12
 num_workers=12
