@@ -21,8 +21,9 @@ sys.path.append('..')
 print(torch.cuda.get_device_name(0))
 torch.cuda.init()
 model_name = 'fb1'
-model_weights_path = 'models/model_20201019_1416_final.pth'  # original
+# model_weights_path = 'models/model_20201019_1416_final.pth'  # original
 # model_weights_path = 'models/model_20230209_1818_final.pth'  # 150epochs deterministic train on whole SNv3
+model_weights_path = 'models/model_20230211_1550_final.pth' # 200epoch determ train on 250max height
 ball_confidence_threshold = 0.7
 player_confidence_threshold = 0.7
 my_device = 'cuda'

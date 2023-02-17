@@ -1,9 +1,8 @@
 [DEFAULT]
 
-epochs=150
+epochs=200
 lr=1e-3
 batch_size=12
 num_workers=12
 
 model=fb1
-

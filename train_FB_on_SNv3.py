@@ -33,7 +33,7 @@ random.seed(10)
 np.random.seed(10)
 torch.backends.cudnn.benchmark = False
 
-writer = SummaryWriter('runs/fb_exp_train_2_150_epochs_deterministic')
+writer = SummaryWriter('runs/fb_exp_train_maxHeight250_200_epochs_deterministic')
 
 # snv3_dataset_path = '/mnt/DATA/DATASETS/SOCCERNETv3/SNV3/SNV3_PIP_data_final'
 snv3_dataset_path = '/home/kmouts/Projects/SNV3/SNV3_PIP_data_final'
@@ -155,8 +155,11 @@ def train(params: Params):
     assert os.path.exists(MODEL_FOLDER), ' Cannot create folder to save trained model: {}'.format(MODEL_FOLDER)
 
     only_ball_frames = False
-    val_snv3_dataset = create_snv3_dataset(snv3_dataset_path, tmode='valid', only_ball_frames=only_ball_frames)
-    train_snv3_dataset = create_snv3_dataset(snv3_dataset_path, tmode='train', only_ball_frames=only_ball_frames)
+    MAX_PLAYER_HEIGHT = 250
+    val_snv3_dataset = create_snv3_dataset(snv3_dataset_path, tmode='valid', only_ball_frames=only_ball_frames,
+                                           max_player_height=MAX_PLAYER_HEIGHT)
+    train_snv3_dataset = create_snv3_dataset(snv3_dataset_path, tmode='train', only_ball_frames=only_ball_frames,
+                                             max_player_height=MAX_PLAYER_HEIGHT)
     dataloaders = {'val': DataLoader(val_snv3_dataset, batch_size=1, num_workers=params.num_workers,
                                      pin_memory=True, collate_fn=my_collate),
                    'train': DataLoader(train_snv3_dataset, batch_size=params.batch_size, num_workers=params.num_workers,
