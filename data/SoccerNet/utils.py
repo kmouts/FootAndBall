@@ -73,8 +73,11 @@ def getListGames(split="v1", task="spotting"):
     return listgames
 
 
-def vis_gt_pred(image, box, label, pred, tmp_path, batch_num):
-    frame = tensor2image(image) * 255
+def vis_gt_pred(image, box, label, pred, tmp_path, batch_num,  snv3=False):
+
+    # frame = tensor2image(image,  snv3=snv3) * 255
+
+    frame = cv2.normalize(image, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
 
     for (x1, y1, x2, y2), lb in zip((np.rint(box.numpy(force=True))).astype(int), label.numpy(force=True)):
         colors = [(0, 0, 153), (204, 0, 0)]
@@ -92,7 +95,7 @@ def vis_gt_pred(image, box, label, pred, tmp_path, batch_num):
         elif lb == 2:  # player
             color = colors[1]
         cv2.rectangle(frame, (x1, y1), (x2, y2), color, thickness=2)
-        # cv2.imshow('frame', cv2.resize(frame, (0, 0), fx=0.5, fy=0.5))
+        cv2.imshow('frame', cv2.resize(frame, (0, 0), fx=0.5, fy=0.5))
 
     cv2.imwrite(tmp_path + 'batch_' + str(batch_num) + '_0.png', frame)
 

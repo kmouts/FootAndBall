@@ -4,7 +4,9 @@ import pickle
 import sys
 from pprint import pprint
 
+import cv2
 import torch
+from matplotlib import pyplot as plt
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
@@ -13,9 +15,10 @@ import numpy as np
 from data.SNv3_dataloader import create_snv3_dataset
 from data.SoccerNet.utils import vis_gt_pred
 from data.SoccerNet.visualize import torch2cv2
+from data.augmentation import PLAYER_LABEL, BALL_LABEL, tensor2image
 
 from data.data_reader import my_collate
-from data.issia_utils import  _ball_detection_stats, ball_boxes_to_centers_list
+from data.issia_utils import _ball_detection_stats, ball_boxes_to_centers_list
 from network import footandball
 from ultralytics import YOLO
 
@@ -25,7 +28,7 @@ torch.cuda.init()
 model_name = 'fb1'
 # model_weights_path = 'models/model_20201019_1416_final.pth'  # original
 # model_weights_path = 'models/model_20230209_1818_final.pth'  # 150epochs deterministic train on whole SNv3
-model_weights_path = 'models/model_20230211_1550_final.pth' # 200epoch determ train on 250max height
+model_weights_path = 'models/model_20230211_1550_final.pth'  # 200epoch determ train on 250max height
 ball_confidence_threshold = 0.7
 player_confidence_threshold = 0.7
 my_device = 'cuda'
@@ -40,10 +43,9 @@ test_snv3_dataset = create_snv3_dataset(snv3_dataset_path, tmode='test', only_ba
                                         max_player_height=MAX_PLAYER_HEIGHT)
 dataloaders = {'test': DataLoader(test_snv3_dataset, batch_size=1,  # batch = 1, for different sizes
                                   num_workers=2,
-                                 pin_memory=True, collate_fn=my_collate)}
+                                  pin_memory=True, collate_fn=my_collate)}
 
 print('Test set: Dataset size (in batches): {}'.format(len(dataloaders['test'])))
-
 
 # Load a model
 model = YOLO("yolov8n.pt")  # load an official model
@@ -79,7 +81,6 @@ count_batches = 0
 gt_ball_pos = []
 pred_ball_pos = []
 
-
 # Iterate over data.
 for ndx, im_data in enumerate(tqdm(dataloaders[phase])):
     images, boxes, labels, fpaths = im_data[0], im_data[1], im_data[2], im_data[3]
@@ -88,37 +89,50 @@ for ndx, im_data in enumerate(tqdm(dataloaders[phase])):
 
     count_batches += 1
 
-    # images = images.squeeze().permute(1,2,0).cpu().detach().numpy()
-    images = 255 * torch2cv2(images.squeeze())
+    img = tensor2image(images.squeeze(), snv3=True)
+    image = cv2.normalize(img, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+    # cv2.imshow(str(ndx), image)
+    # cv2.waitKey()
 
     # for each image in the batch
     for t in target:
         ball_boxes_to_centers_list(t, gt_ball_pos)
 
-    results = model(images)
+    results = model(image)
 
-    pred_cpu = []
+    pred_cpu = {'boxes': [], 'labels': [], 'scores': []}
     boxes = results[0].boxes.xyxy.detach().cpu()
     labels = results[0].boxes.cls.detach().cpu()
     scores = results[0].boxes.conf.detach().cpu()
-    for i in range(len(boxes)):
-        pred_cpu.append({'boxes': boxes[i], 'labels': labels[i], 'scores': scores[i]})
+
+    player_mask = [labels == 0]  # COCO (+1) 0 for person, 36 for sports ball
+    ball_mask = [labels == 36]
+    mask = [player_mask or ball_mask]
+
+    labels[player_mask] = PLAYER_LABEL
+    labels[ball_mask] = BALL_LABEL
+    labels = labels[mask]
+    scores = scores[mask]
+    boxes = boxes[mask]
+
+    pred_cpu['boxes'] = boxes
+    pred_cpu['labels'] = labels
+    pred_cpu['scores'] = scores
 
     # Update metric with predictions and respective ground truth
-    metric.update(pred_cpu, target)
-    metric2.update(pred_cpu, target)
+    metric.update([pred_cpu], target)
+    metric2.update([pred_cpu], target)
 
     torch.cuda.empty_cache()
 
-    # for each image in the batch prediction
-    for t in pred_cpu:
-        ball_boxes_to_centers_list(t, pred_ball_pos)
+    ball_boxes_to_centers_list(pred_cpu, pred_ball_pos)
 
     # Visualize gt and predictions
     if count_batches == 1 or count_batches % 500 == 0:
         sanity_file_paths.append((count_batches, fpaths[0]))
         # GT bounding boxes
-        vis_gt_pred(images[0], boxes[0], labels[0], pred_cpu[0], tmp_path=snv3_tmp, batch_num=count_batches)
+        vis_gt_pred(img, boxes, labels, pred_cpu, tmp_path=snv3_tmp, batch_num=count_batches,
+                    )
 
 pprint(sanity_file_paths)
 
@@ -153,4 +167,3 @@ avg_recall = sum(temp) / len(temp)
 print('Avg. ball precision (tolerance: ' + str(tolerance) + ' pixels) = ' + str(avg_precision))
 print('Avg. ball recall = ' + str(avg_recall))
 print('Percent of correctly classified ball frames = ' + str(percent_correctly_classified_frames))
-
