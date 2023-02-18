@@ -95,9 +95,10 @@ def vis_gt_pred(image, box, label, pred, tmp_path, batch_num,  snv3=False):
         elif lb == 2:  # player
             color = colors[1]
         cv2.rectangle(frame, (x1, y1), (x2, y2), color, thickness=2)
-        cv2.imshow('frame', cv2.resize(frame, (0, 0), fx=0.5, fy=0.5))
+        # cv2.imshow('frame', np.array(frame, dtype=np.uint8))
+        # cv2.waitKey()
 
-    cv2.imwrite(tmp_path + 'batch_' + str(batch_num) + '_0.png', frame)
+    cv2.imwrite(tmp_path + 'batch_' + str(batch_num) + '_0.png', np.array(frame, dtype=np.uint8))
 
 
 if __name__ == "__main__":

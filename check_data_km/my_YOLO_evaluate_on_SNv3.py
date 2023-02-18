@@ -91,7 +91,7 @@ for ndx, im_data in enumerate(tqdm(dataloaders[phase])):
 
     img = tensor2image(images.squeeze(), snv3=True)
     image = cv2.normalize(img, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
-    # cv2.imshow(str(ndx), image)
+    # cv2.imshow(str(ndx), image, dtype = np.uint8)
     # cv2.waitKey()
 
     # for each image in the batch
@@ -101,23 +101,23 @@ for ndx, im_data in enumerate(tqdm(dataloaders[phase])):
     results = model(image)
 
     pred_cpu = {'boxes': [], 'labels': [], 'scores': []}
-    boxes = results[0].boxes.xyxy.detach().cpu()
-    labels = results[0].boxes.cls.detach().cpu()
-    scores = results[0].boxes.conf.detach().cpu()
+    pboxes = results[0].boxes.xyxy.detach().cpu()
+    plabels = results[0].boxes.cls.detach().cpu()
+    pscores = results[0].boxes.conf.detach().cpu()
 
-    player_mask = [labels == 0]  # COCO (+1) 0 for person, 36 for sports ball
-    ball_mask = [labels == 36]
-    mask = [player_mask or ball_mask]
+    player_mask = plabels == 0  # COCO (+1) 0 for person, 36 for sports ball
+    ball_mask = plabels == 36
+    mask = torch.logical_or(player_mask, ball_mask)
 
-    labels[player_mask] = PLAYER_LABEL
-    labels[ball_mask] = BALL_LABEL
-    labels = labels[mask]
-    scores = scores[mask]
-    boxes = boxes[mask]
+    plabels[player_mask] = PLAYER_LABEL
+    plabels[ball_mask] = BALL_LABEL
+    plabels = plabels[mask]
+    pscores = pscores[mask]
+    pboxes = pboxes[mask]
 
-    pred_cpu['boxes'] = boxes
-    pred_cpu['labels'] = labels
-    pred_cpu['scores'] = scores
+    pred_cpu['boxes'] = pboxes
+    pred_cpu['labels'] = plabels
+    pred_cpu['scores'] = pscores
 
     # Update metric with predictions and respective ground truth
     metric.update([pred_cpu], target)
@@ -131,7 +131,7 @@ for ndx, im_data in enumerate(tqdm(dataloaders[phase])):
     if count_batches == 1 or count_batches % 500 == 0:
         sanity_file_paths.append((count_batches, fpaths[0]))
         # GT bounding boxes
-        vis_gt_pred(img, boxes, labels, pred_cpu, tmp_path=snv3_tmp, batch_num=count_batches,
+        vis_gt_pred(img, boxes[0], labels[0], pred_cpu, tmp_path=snv3_tmp, batch_num=count_batches,
                     )
 
 pprint(sanity_file_paths)
