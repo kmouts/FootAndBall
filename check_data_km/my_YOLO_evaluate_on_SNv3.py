@@ -106,7 +106,7 @@ for ndx, im_data in enumerate(tqdm(dataloaders[phase])):
     pscores = results[0].boxes.conf.detach().cpu()
 
     player_mask = plabels == 0  # COCO (+1) 0 for person, 36 for sports ball
-    ball_mask = plabels == 36
+    ball_mask = plabels == 32
     mask = torch.logical_or(player_mask, ball_mask)
 
     plabels[player_mask] = PLAYER_LABEL
