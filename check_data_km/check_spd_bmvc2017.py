@@ -4,24 +4,19 @@
 
 
 import argparse
-
 import cv2
-import numpy as np
-import os
-import time
-
-# import torch
-
 import sys
 
-from data.spd_bmvc2017_dataset import create_spd_dataset
-from misc.config import Params
-
 if __name__ == '__main__':
+    sys.path.append('data')
+    sys.path.append('misc')
+    print(sys.path)
+    from misc.config import Params
+    from data.spd_bmvc2017_dataset import create_spd_dataset
 
     print('Check spd_bmvc2017 Dataset')
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', help='Path to the configuration file', type=str, default='../config.txt')
+    parser.add_argument('--config', help='Path to the configuration file', type=str, default='config.txt')
     parser.add_argument('--debug', dest='debug', help='debug mode', action='store_true')
     args = parser.parse_args()
 
