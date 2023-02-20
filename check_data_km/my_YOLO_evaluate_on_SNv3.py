@@ -98,7 +98,9 @@ for ndx, im_data in enumerate(tqdm(dataloaders[phase])):
     for t in target:
         ball_boxes_to_centers_list(t, gt_ball_pos)
 
-    results = model(image)
+    # results = model(image)
+    results = model.predict(source=image, save=False, conf=0.25, show=False, verbose=True,
+                            stream=False, device=0)
 
     pred_cpu = {'boxes': [], 'labels': [], 'scores': []}
     pboxes = results[0].boxes.xyxy.detach().cpu()
