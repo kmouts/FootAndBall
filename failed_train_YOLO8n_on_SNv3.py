@@ -18,6 +18,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.yolo.utils import RANK
+from ultralytics.yolo.utils.ops import xyxy2xywh, xyxy2xywhn
 
 from data.SNv3_dataloader import create_snv3_dataset
 from data.augmentation import tensor2image
@@ -83,11 +84,36 @@ def train(params: Params):
 
             return model
 
-    trainer = CustomTrainer(overrides={"data": train_snv3_dataset.data, "imgsz": (1280, 720),
+        def preprocess_batch(self, batch):
+            # my_batch = {"img": batch[0].to(self.device, non_blocking=True).float()}
+            # my_batch["bboxes": batch[1].to(self.device, non_blocking=True)]
+            # my_batch["cls": batch[2].to(self.device, non_blocking=True)]
+            # my_batch = {"img": batch[0], "bboxes": batch[1], "cls": batch[2]}
+            im = batch[0].to(self.device, non_blocking=True).float()
+            # bb_list = [bboxes.to(self.device) for bboxes in batch[1]]
+            # cl_list = [cls.to(self.device) for cls in batch[2]]
+            # idx = torch.arange(len(batch[2])).to(self.device)
+
+            # bb_t = xyxy2xywh(torch.cat(batch[1]))
+            bb_t = xyxy2xywhn(torch.cat(batch[1]), w=im.shape[-2], h=im.shape[-1])
+            bb_t = bb_t.to(self.device, non_blocking=True)
+            cl_t = torch.cat(batch[2]).to(self.device, non_blocking=True)
+
+            nt = []
+            for i, c in enumerate(batch[2]):  # list of labels
+                atemp = torch.full((len(c),), i)
+                nt.append(atemp)
+            atemp = torch.cat(nt, 0).to(self.device, non_blocking=True)
+
+            my_batch = {"img": im, "bboxes": bb_t, "cls": cl_t, "batch_idx": atemp}
+            return my_batch
+
+    trainer = CustomTrainer(overrides={"data": train_snv3_dataset.data, "imgsz": 640,
                                        "batch": params.batch_size, "workers": params.num_workers,
                                        "pretrained": True, "epochs": 20, "patience": 5,
                                        "model": "yolov8n.pt",
-                                       "val": True, "device": 0,
+                                       "val": True, "device": 0, "name": "yolo8n_custom",
+                                       "rect": True, "verbose": False
                                        })
     trainer.train()
     trained_model = trainer.best
