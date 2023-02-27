@@ -73,8 +73,7 @@ def getListGames(split="v1", task="spotting"):
     return listgames
 
 
-def vis_gt_pred(image, box, label, pred, tmp_path, batch_num,  snv3=False):
-
+def vis_gt_pred(image, box, label, pred, tmp_path, batch_num, snv3=False):
     # frame = tensor2image(image,  snv3=snv3) * 255
 
     frame = cv2.normalize(image, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
@@ -99,6 +98,28 @@ def vis_gt_pred(image, box, label, pred, tmp_path, batch_num,  snv3=False):
         # cv2.waitKey()
 
     cv2.imwrite(tmp_path + 'batch_' + str(batch_num) + '_0.png', np.array(frame, dtype=np.uint8))
+
+
+def vis_gt_yolo(image, boxes, labels, tmp_path, batch_num, fname, snv3=False):
+    # frame = tensor2image(image,  snv3=snv3) * 255
+
+    opencv_image = np.array(image)
+    # Convert RGB to BGR
+    opencv_image = cv2.cvtColor(opencv_image, cv2.COLOR_RGB2BGR)
+
+    for (x1, y1, x2, y2), lb in zip(boxes, labels):
+        colors = [(0, 0, 153), (204, 0, 0)]
+        color = None
+        if lb == 1:  # ball
+            color = colors[0]
+        elif lb == 2:  # player
+            color = colors[1]
+        cv2.rectangle(opencv_image, (x1, y1), (x2, y2), color, thickness=2)
+
+        # cv2.imshow('frame', np.array(frame, dtype=np.uint8))
+        # cv2.waitKey()
+
+    cv2.imwrite(tmp_path + fname + '_batch_' + str(batch_num) + '_0.jpg', opencv_image)
 
 
 if __name__ == "__main__":

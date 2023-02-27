@@ -19,7 +19,7 @@ from argparse import ArgumentParser
 
 
 def create_snv3_dataset(dataset_path, tmode, only_ball_frames=False, tiny=None, preload_images=False, meta_only=False,
-                        max_player_height=0):
+                        max_player_height=0, create_for_yolo=False):
     # Get SoccerNet v3 Dataset
     assert tmode == 'train' or tmode == 'valid' or tmode == 'test' or tmode == 'rgb_train'
     assert os.path.exists(dataset_path), 'Cannot find dataset: ' + str(dataset_path)
@@ -28,14 +28,17 @@ def create_snv3_dataset(dataset_path, tmode, only_ball_frames=False, tiny=None, 
     val_image_size = (720, 1280)
     test_image_size = (720, 1280)
 
-    if tmode == 'train':
-        transform = augmentation.TrainAugmentation(size=train_image_size, SNv3=True)
-    elif tmode == 'valid':
-        transform = augmentation.NoAugmentation(size=val_image_size, SNv3=True)
-    elif tmode == 'test':
-        transform = augmentation.NoAugmentation(size=test_image_size, SNv3=True)
-    elif tmode == 'rgb_train':
-        transform = augmentation.NoAugmentationForRGB(size=test_image_size)
+    if create_for_yolo:
+        transform = augmentation.DoNothing(size=test_image_size)
+    else:
+        if tmode == 'train':
+            transform = augmentation.TrainAugmentation(size=train_image_size, SNv3=True)
+        elif tmode == 'valid':
+            transform = augmentation.NoAugmentation(size=val_image_size, SNv3=True)
+        elif tmode == 'test':
+            transform = augmentation.NoAugmentation(size=test_image_size, SNv3=True)
+        elif tmode == 'rgb_train':
+            transform = augmentation.NoAugmentationForRGB(size=test_image_size)
 
     dataset = SNV3Dataset(dataset_path, transform, preload_images, split=tmode, only_ball_frames=only_ball_frames,
                           tiny=tiny, meta_only=meta_only, max_player_height=max_player_height)

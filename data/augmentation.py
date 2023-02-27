@@ -414,3 +414,15 @@ class NoAugmentationForRGB(object):
 
     def __call__(self, sample):
         return self.augment(sample)
+
+
+class DoNothing(object):
+    def __init__(self, size):
+        self.size = size
+        # self.augment = transforms.Compose([
+        #     # CenterCrop(self.size),
+        #     ToTensor()
+        # ])
+
+    def __call__(self, sample):
+        return sample
