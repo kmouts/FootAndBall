@@ -69,7 +69,7 @@ for phase in ['train', 'valid', 'test']:
     for ndx, im_data in enumerate(tqdm(dataloaders[phase])):
         image, boxes, labels, fpath = im_data[0], im_data[1], im_data[2], im_data[3]
 
-        xywh_boxes = xyxy2xywhn(boxes, w=image.width, h=image.height)
+        xywh_boxes = xyxy2xywhn(boxes, w=image.width, h=image.height, clip=True)
         labels = labels.numpy().tolist()
 
         count_batches += 1
@@ -82,7 +82,8 @@ for phase in ['train', 'valid', 'test']:
         image.save(snv3_yolo_path + phase + "/" + "images/" + fn + ".jpg")
         with open(snv3_yolo_path + phase + "/" + "labels/" + fn + ".txt", "w") as f:
             for i, ln in enumerate(xywh_boxes.numpy().tolist()):
-                f.write('{} {:.6f} {:.6f} {:.6f} {:.6f}\n'.format(labels[i], *ln))
+                f.write('{} {:.6f} {:.6f} {:.6f} {:.6f}\n'.format(labels[i]-1, *ln))
+                # 0 BALL, 1 PLAYER !!, otherwise: RuntimeError: CUDA error: device-side assert triggered..
 
         # Visualize gt and predictions
         if count_batches == 1 or count_batches % 500 == 0:
