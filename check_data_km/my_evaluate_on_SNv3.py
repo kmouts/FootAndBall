@@ -3,6 +3,7 @@ import pickle
 # os.system('nvidia-smi')
 import sys
 from pprint import pprint
+import time
 
 import torch
 from tqdm import tqdm
@@ -21,9 +22,9 @@ sys.path.append('..')
 print(torch.cuda.get_device_name(0))
 torch.cuda.init()
 model_name = 'fb1'
-# model_weights_path = 'models/model_20201019_1416_final.pth'  # original
+model_weights_path = 'models/model_20201019_1416_final.pth'  # original
 # model_weights_path = 'models/model_20230209_1818_final.pth'  # 150epochs deterministic train on whole SNv3
-model_weights_path = 'models/model_20230211_1550_final.pth' # 200epoch determ train on 250max height
+# model_weights_path = 'models/model_20230211_1550_final.pth'  # 200epoch determ train on 250max height
 ball_confidence_threshold = 0.7
 player_confidence_threshold = 0.7
 my_device = 'cuda'
@@ -73,6 +74,7 @@ count_batches = 0
 gt_ball_pos = []
 pred_ball_pos = []
 
+dtimes = [None] * len(dataloaders['test'])
 
 # Iterate over data.
 for ndx, im_data in enumerate(tqdm(dataloaders[phase])):
@@ -86,7 +88,9 @@ for ndx, im_data in enumerate(tqdm(dataloaders[phase])):
     for t in target:
         ball_boxes_to_centers_list(t, gt_ball_pos)
 
+    start = time.time()
     predictions = model(images)
+    dtimes[ndx] = time.time()-start
 
     pred_cpu = [{'boxes': e['boxes'].detach().cpu(), 'labels': e['labels'].detach().cpu(),
                  'scores': e['scores'].detach().cpu()} for e in predictions]
@@ -108,6 +112,7 @@ for ndx, im_data in enumerate(tqdm(dataloaders[phase])):
         vis_gt_pred(images[0], boxes[0], labels[0], pred_cpu[0], tmp_path=snv3_tmp, batch_num=count_batches)
 
 pprint(sanity_file_paths)
+print("\nInference time per image: %3.1f ms" % (1000 * sum(dtimes)/len(dataloaders['test'])))
 
 # Compute the results
 result = metric.compute()
