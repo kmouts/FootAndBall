@@ -4,3 +4,5 @@ training_stats_model_20220927_0804.pickle
 *.pyc
 *.pth
 dataset/filmrole5.avi
+/datasets/coco128/
+/runs/
