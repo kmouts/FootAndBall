@@ -14,23 +14,16 @@ import numpy as np
 
 from data.SNv3_dataloader import create_snv3_dataset
 from data.SoccerNet.utils import vis_gt_pred
-from data.SoccerNet.visualize import torch2cv2
 from data.augmentation import PLAYER_LABEL, BALL_LABEL, tensor2image
 
 from data.data_reader import my_collate
 from data.issia_utils import _ball_detection_stats, ball_boxes_to_centers_list
-from network import footandball
 from ultralytics import YOLO
 
 sys.path.append('..')
 print(torch.cuda.get_device_name(0))
 torch.cuda.init()
-model_name = 'fb1'
-# model_weights_path = 'models/model_20201019_1416_final.pth'  # original
-# model_weights_path = 'models/model_20230209_1818_final.pth'  # 150epochs deterministic train on whole SNv3
-model_weights_path = 'models/model_20230211_1550_final.pth'  # 200epoch determ train on 250max height
-ball_confidence_threshold = 0.7
-player_confidence_threshold = 0.7
+
 my_device = 'cuda'
 snv3_dataset_path = '/mnt/DATA/DATASETS/SOCCERNETv3/SNV3/SNV3_PIP_data_final'
 snv3_tmp = '/mnt/DATA/DATASETS/SOCCERNETv3/tmp/'
@@ -48,27 +41,12 @@ dataloaders = {'test': DataLoader(test_snv3_dataset, batch_size=1,  # batch = 1,
 print('Test set: Dataset size (in batches): {}'.format(len(dataloaders['test'])))
 
 # Load a model
-model = YOLO("yolov8n.pt")  # load an official model
+# model = YOLO("yolov8n.pt")  # load an official model
 # model = YOLO("path/to/best.pt")  # load a custom model
-
-# Predict with the model
-# results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
-
-# model = model.to(my_device)
-
-# if my_device == 'cpu':
-#     print('Loading CPU weights...')
-#     state_dict = torch.load(model_weights_path, map_location=lambda storage, loc: storage)
-# else:
-#     print('Loading GPU weights...')
-#     state_dict = torch.load(model_weights_path)
-#
-# model.load_state_dict(state_dict)
-# Set model to evaluation mode
+# model = YOLO("/mnt/DATA/DFVA/FootAndBall/FootAndBall/runs/detect/yolo8n_custom_640/weights/best.pt")
+model = YOLO("/mnt/DATA/DFVA/FootAndBall/FootAndBall/runs/detect/yolo8n_custom_1280_SGD4/weights/best.pt")
 
 phase = 'test'
-# model.eval()
-
 
 # https://torchmetrics.readthedocs.io/en/stable/detection/mean_average_precision.html
 metric = MeanAveragePrecision(iou_type="bbox", class_metrics=True, compute_on_cpu=True,
@@ -80,6 +58,9 @@ count_batches = 0
 # ball_pos contains list of ball positions (x,y) on each frame; multiple balls per frame are possible
 gt_ball_pos = []
 pred_ball_pos = []
+
+dtimes = [None] * len(dataloaders['test'])
+tdtimes = [None] * len(dataloaders['test'])
 
 # Iterate over data.
 for ndx, im_data in enumerate(tqdm(dataloaders[phase])):
@@ -99,16 +80,20 @@ for ndx, im_data in enumerate(tqdm(dataloaders[phase])):
         ball_boxes_to_centers_list(t, gt_ball_pos)
 
     # results = model(image)
+
     results = model.predict(source=image, save=False, conf=0.25, show=False, verbose=True,
-                            stream=False, device=0)
+                            stream=False, device=0, augment=False)
 
     pred_cpu = {'boxes': [], 'labels': [], 'scores': []}
     pboxes = results[0].boxes.xyxy.detach().cpu()
     plabels = results[0].boxes.cls.detach().cpu()
     pscores = results[0].boxes.conf.detach().cpu()
 
-    player_mask = plabels == 0  # COCO (+1) 0 for person, 36 for sports ball
-    ball_mask = plabels == 32
+    dtimes[ndx] = results[0].speed['inference']
+    tdtimes[ndx] = results[0].speed['preprocess']+results[0].speed['inference']+results[0].speed['postprocess']
+
+    player_mask = plabels == 1  # COCO (+1) 0 for person, 32 for sports ball
+    ball_mask = plabels == 0   # For custom trained YOLO: 0 for BALL, 1 for person
     mask = torch.logical_or(player_mask, ball_mask)
 
     plabels[player_mask] = PLAYER_LABEL
@@ -137,6 +122,8 @@ for ndx, im_data in enumerate(tqdm(dataloaders[phase])):
                     )
 
 pprint(sanity_file_paths)
+print("Inference time per image: %3.1f ms" % (sum(dtimes)/len(dataloaders['test'])))
+print("Total Inference per image: %3.1f ms" % (sum(tdtimes)/len(dataloaders['test'])))
 
 # Compute the results
 result = metric.compute()
@@ -147,8 +134,6 @@ print("---------------------------------------------------")
 result2 = metric2.compute()
 pprint(result2)
 print(result2.map.numpy())
-
-# https://chtalhaanwar.medium.com/pytorch-num-workers-a-tip-for-speedy-training-ed127d825db7
 
 # From issia_utils.py
 # Ball detection in pixels performance
