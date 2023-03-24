@@ -7,7 +7,7 @@ Created by [Kostas Moutselos](mailto:kmouts@unipi.gr),
 and Ilias Maglogiannis
 at <a href="https://cbml.ds.unipi.gr"> CBML </a>
 
-<img src="images/batch_500_0.png" alt="football match detection image" width="80%">
+<img src="images/batch_500_0.jpg" alt="football match detection image" width="100%">
 
 ### Abstract
 Players and ball detection are among the first required steps on a football analytics platform.
@@ -20,7 +20,7 @@ benchmark in future comparisons. The recent YOLO8n model proves better
 than FootAndBall in long-shot real-time detection of the ball and players on football fields.
 
 ### System overview
-<img src="images/batch_500_0.jpg" alt="football match detection image" width="100%">
+<img src="images/methods.png" alt="Comparison Methodology" width="100%">
 
 ### Code
 This repository is a clone of <a href="https://github.com/jac99/FootAndBallFootAndBall"> FootAndBall<a/> where various modifications/additions have been made.
