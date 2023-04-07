@@ -1,7 +1,7 @@
 
 
-## *Setting a baseline in long-shot and real-time player & ball detection in Football*
-**[Setting a baseline ... ](https://ifipaiai.org/2023/)** AIAI 2023 León, Spain. 
+## *Setting a Baseline in long-shot real-time Soccer Player and Ball detection *
+**[Setting a Baseline in long-shot real-time Soccer Player and Ball detection](https://easyconferences.eu/iisa2023/)** IISA 2023 Volos, Greece. 
 
 Created by [Kostas Moutselos](mailto:kmouts@unipi.gr),
 and Ilias Maglogiannis
@@ -16,8 +16,8 @@ were not sufficient. We point out their weaknesses, and with the advent of Socce
 propose and deliver to the community an edited part of it, in YOLO normalized annotation format,
 for the reliable evaluation of related models [https://github.com/kmouts/SoccerNet_v3_H250]. 
 The code of the methods and metrics are also available so that they can be used as a
-benchmark in future comparisons. The recent YOLO8n model proves better
-than FootAndBall in long-shot real-time detection of the ball and players on football fields.
+benchmark in future comparisons. [https://github.com/kmouts/FootAndBall].
+The recent YOLO8n model proves better than FootAndBall in long-shot real-time detection of the ball and players on football fields.
 
 ### System overview
 <img src="images/methods.png" alt="Comparison Methodology" width="50%">
@@ -32,14 +32,14 @@ have been added in source comments.
 ### Citation
 If you find our work useful, please consider citing:
 
-    @conference{AIAI 2023 19th International Conference on Artificial Intelligence Applications and Innovations,
+    @conference{IISA 2023 14th International Conference on Information,Intelligence, Systems and Applications,
     author={Konstantinos Moutselos and Ilias Maglogiannis},
-    title={Setting a baseline in long-shot and real-time player & ball detection in Football},
-    booktitle={Proceedings of the 19th International Conference on Artificial Intelligence Applications and Innovations},
+    title={Setting a baseline in long-shot real-time Soccer Player and Ball detection},
+    booktitle={},
     year={2023},
     pages={-},
-    publisher={Springer},
-    organization={IFIP AIAI},
+    publisher={},
+    organization={},
     doi={},
     isbn={},
     }
