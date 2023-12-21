@@ -32,16 +32,15 @@ have been added in source comments.
 ### Citation
 If you find our work useful, please consider citing:
 
-    @conference{IISA 2023 14th International Conference on Information,Intelligence, Systems and Applications,
-    author={Konstantinos Moutselos and Ilias Maglogiannis},
-    title={Setting a Baseline for long-shot real-time Player and Ball detection in Soccer Videos},
-    booktitle={},
+    @INPROCEEDINGS{10345947,
+    author={Moutselos, Konstantinos and Maglogiannis, Ilias},
+    booktitle={2023 14th International Conference on Information, Intelligence, Systems & Applications (IISA)}, 
+    title={Setting a Baseline for Long-Shot Real-Time Player and Ball Detection in Soccer Videos}, 
     year={2023},
-    pages={-},
-    publisher={},
-    organization={},
-    doi={},
-    isbn={},
+    volume={},
+    number={},
+    pages={1-7},
+    doi={10.1109/IISA59645.2023.10345947}}
     }
     
 ### Environment and Dependencies
